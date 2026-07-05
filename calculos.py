@@ -1,3 +1,5 @@
+python 
+
 def calcular_regra_50_30_20(valor):
     """Recebe um valor e calcula a divisao financeira 50/30/20."""
     if valor < 0:
