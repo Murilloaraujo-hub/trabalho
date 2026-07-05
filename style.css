@@ -1,3 +1,4 @@
+
 :root {
   --blue-950: #08233f;
   --blue-900: #0d3158;
@@ -647,6 +648,150 @@ legend {
   color: #6a4700;
 }
 
+/* ===================== TABS (NAVEGACAO POR TOPICOS) ===================== */
+
+.tablist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+
+.tab-button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--blue-900);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-weight: 800;
+  transition: transform 180ms ease, background 180ms ease, color 180ms ease;
+}
+
+.tab-button:hover {
+  background: var(--blue-100);
+}
+
+.tab-button.is-active {
+  color: #ffffff;
+  background: var(--blue-700);
+  border-color: var(--blue-700);
+}
+
+.tab-panel {
+  display: grid;
+  gap: 22px;
+}
+
+.goals-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(300px, 1fr));
+  gap: 22px;
+  align-items: start;
+}
+
+/* ===================== RENDIMENTO EXTRA ===================== */
+
+.extra-income-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  margin-top: 6px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: var(--radius);
+  color: #ffffff;
+  background: rgba(22, 166, 106, 0.32);
+  font-size: 0.86rem;
+  font-weight: 800;
+  transition: transform 180ms ease, background 180ms ease;
+}
+
+.extra-income-button:hover {
+  background: rgba(22, 166, 106, 0.48);
+  transform: translateY(-1px);
+}
+
+/* ===================== MODAIS (ONBOARDING E RENDIMENTO EXTRA) ===================== */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(8, 35, 63, 0.55);
+  backdrop-filter: blur(2px);
+  animation: slideDown 220ms ease both;
+}
+
+.modal-card {
+  width: min(460px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 26px;
+  border: 1px solid rgba(220, 230, 241, 0.86);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 16px;
+}
+
+.modal-card .section-heading {
+  margin-bottom: 0;
+}
+
+.modal-card form {
+  display: grid;
+  gap: 16px;
+}
+
+.modal-card label {
+  display: grid;
+  gap: 8px;
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.modal-card input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0 14px;
+  color: var(--ink);
+  background: var(--soft);
+  outline: none;
+  transition: border 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.modal-card input:focus {
+  border-color: var(--blue-600);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(29, 127, 229, 0.14);
+}
+
+.modal-secondary-button {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--muted);
+  background: var(--soft);
+  font-weight: 800;
+}
+
+.modal-secondary-button:hover {
+  background: #e8eef6;
+}
+
 .transactions-panel {
   min-height: 390px;
 }
@@ -819,6 +964,12 @@ legend {
 }
 
 @media (max-width: 900px) {
+  .goals-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
   .hero-content,
   .content-grid,
   .charts-grid {
@@ -887,6 +1038,20 @@ legend {
   .goal-values {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .tablist {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .tab-button {
+    flex: 0 0 auto;
+  }
+
+  .modal-card {
+    padding: 20px;
   }
 }
 

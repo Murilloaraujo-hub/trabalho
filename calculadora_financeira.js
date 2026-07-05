@@ -1,9 +1,10 @@
+
 const STORAGE_KEY = "ephyra-finance-state";
 const LEGACY_STORAGE_KEY = "ephyra-finance-transactions";
 
 const CATEGORY_OPTIONS = {
-  income: ["Salário", "Freelance", "Presente", "Outros"],
-  expense: ["Alimentação", "Transporte", "Saúde", "Educação", "Lazer", "Contas", "Outros"]
+  income: ["Salário", "Freelance", "Presente", "Bônus/Extra", "Outros"],
+  expense: ["Alimentação", "Transporte", "Saúde", "Educação", "Lazer", "Contas", "Investimento", "Outros"]
 };
 
 const transactionForm = document.querySelector("#transactionForm");
@@ -51,6 +52,22 @@ const averageExpense = document.querySelector("#averageExpense");
 const averageIncome = document.querySelector("#averageIncome");
 const totalMoved = document.querySelector("#totalMoved");
 
+const onboardingOverlay = document.querySelector("#onboardingOverlay");
+const onboardingForm = document.querySelector("#onboardingForm");
+const onboardingSalaryInput = document.querySelector("#onboardingSalaryInput");
+const onboardingMessage = document.querySelector("#onboardingMessage");
+
+const extraIncomeButton = document.querySelector("#extraIncomeButton");
+const extraIncomeOverlay = document.querySelector("#extraIncomeOverlay");
+const extraIncomeForm = document.querySelector("#extraIncomeForm");
+const extraIncomeDescriptionInput = document.querySelector("#extraIncomeDescriptionInput");
+const extraIncomeAmountInput = document.querySelector("#extraIncomeAmountInput");
+const extraIncomeMessage = document.querySelector("#extraIncomeMessage");
+const extraIncomeCancelButton = document.querySelector("#extraIncomeCancelButton");
+
+const tabButtons = document.querySelectorAll("[data-tab]");
+const tabPanels = document.querySelectorAll("[data-tab-panel]");
+
 let appState = loadState();
 let activeFilter = "all";
 let searchTerm = "";
@@ -85,6 +102,31 @@ const ACHIEVEMENTS = [
     id: "first-goal",
     label: "🏆 Primeira meta criada",
     isUnlocked: () => appState.goals.length > 0
+  },
+  {
+    id: "goal-master",
+    label: "🏆 Mestre da Poupança",
+    isUnlocked: () => appState.goals.some((goal) => getGoalProgress(goal).percent >= 100)
+  },
+  {
+    id: "green-month",
+    label: "🏆 Mês no Verde",
+    isUnlocked: () => {
+      const { income, expense } = appState.totals;
+      return income > 0 && income >= expense * 1.2;
+    }
+  },
+  {
+    id: "extra-bonus",
+    label: "🏆 Bônus de Esforço",
+    isUnlocked: () => appState.hasAddedExtraIncome === true
+  },
+  {
+    id: "conscious-investor",
+    label: "🏆 Investidor Consciente",
+    isUnlocked: () => appState.transactions.some(
+      (transaction) => transaction.type === "expense" && transaction.category === "Investimento"
+    )
   }
 ];
 
@@ -94,6 +136,7 @@ function createEmptyState() {
     goals: [],
     achievements: [],
     positiveBalanceSince: null,
+    hasAddedExtraIncome: false,
     totals: {
       income: 0,
       expense: 0,
@@ -136,6 +179,7 @@ function normalizeState(state) {
   safeState.goals = goals.map(normalizeGoal).filter(Boolean);
   safeState.achievements = achievements.filter((achievement) => typeof achievement === "string");
   safeState.positiveBalanceSince = state.positiveBalanceSince || null;
+  safeState.hasAddedExtraIncome = Boolean(state.hasAddedExtraIncome);
   safeState.totals = calculateTotals(safeState.transactions);
 
   return safeState;
@@ -893,6 +937,92 @@ function clearAllData() {
   updateFilterButtons();
   renderApp();
   setMessage(formMessage, "Todos os dados foram apagados.", "success");
+  checkOnboarding();
+}
+
+function checkOnboarding() {
+  const needsOnboarding = appState.transactions.length === 0;
+  onboardingOverlay.classList.toggle("is-hidden", !needsOnboarding);
+  document.body.style.overflow = needsOnboarding ? "hidden" : "";
+}
+
+function handleOnboardingSubmit(event) {
+  event.preventDefault();
+
+  const amount = parseAmount(onboardingSalaryInput.value);
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    setMessage(onboardingMessage, "Informe um valor de salario maior que zero.");
+    onboardingSalaryInput.focus();
+    return;
+  }
+
+  appState.transactions.unshift({
+    id: createId("transaction"),
+    description: "Salário",
+    amount,
+    type: "income",
+    category: "Salário",
+    date: new Date().toLocaleDateString("pt-BR"),
+    createdAt: new Date().toISOString()
+  });
+
+  saveState();
+  renderApp();
+  onboardingForm.reset();
+  setMessage(onboardingMessage, "");
+  checkOnboarding();
+}
+
+function openExtraIncomeModal() {
+  extraIncomeOverlay.classList.remove("is-hidden");
+  extraIncomeDescriptionInput.focus();
+}
+
+function closeExtraIncomeModal() {
+  extraIncomeOverlay.classList.add("is-hidden");
+  extraIncomeForm.reset();
+  setMessage(extraIncomeMessage, "");
+}
+
+function handleExtraIncomeSubmit(event) {
+  event.preventDefault();
+
+  const description = extraIncomeDescriptionInput.value.trim() || "Rendimento extra";
+  const amount = parseAmount(extraIncomeAmountInput.value);
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    setMessage(extraIncomeMessage, "Informe um valor maior que zero.");
+    extraIncomeAmountInput.focus();
+    return;
+  }
+
+  appState.transactions.unshift({
+    id: createId("transaction"),
+    description,
+    amount,
+    type: "income",
+    category: "Bônus/Extra",
+    date: new Date().toLocaleDateString("pt-BR"),
+    createdAt: new Date().toISOString()
+  });
+
+  appState.hasAddedExtraIncome = true;
+
+  saveState();
+  renderApp();
+  closeExtraIncomeModal();
+  setMessage(formMessage, "Rendimento extra adicionado com sucesso.", "success");
+}
+
+function switchTab(tabName) {
+  tabButtons.forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.tab === tabName);
+  });
+
+  tabPanels.forEach((panel) => {
+    panel.classList.toggle("is-hidden", panel.dataset.tabPanel !== tabName);
+  });
 }
 
 function handleAmountInput(input) {
@@ -958,7 +1088,26 @@ transactionList.addEventListener("click", handleTransactionListClick);
 goalList.addEventListener("click", handleGoalListClick);
 clearDataButton.addEventListener("click", clearAllData);
 
+onboardingForm.addEventListener("submit", handleOnboardingSubmit);
+onboardingSalaryInput.addEventListener("input", () => {
+  handleAmountInput(onboardingSalaryInput);
+  setMessage(onboardingMessage, "");
+});
+
+extraIncomeButton.addEventListener("click", openExtraIncomeModal);
+extraIncomeCancelButton.addEventListener("click", closeExtraIncomeModal);
+extraIncomeForm.addEventListener("submit", handleExtraIncomeSubmit);
+extraIncomeAmountInput.addEventListener("input", () => {
+  handleAmountInput(extraIncomeAmountInput);
+  setMessage(extraIncomeMessage, "");
+});
+
+tabButtons.forEach((button) => {
+  button.addEventListener("click", () => switchTab(button.dataset.tab));
+});
+
 updateCategoryOptions();
 initializeCharts();
 saveState();
 renderApp();
+checkOnboarding();
