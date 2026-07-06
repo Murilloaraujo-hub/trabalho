@@ -10,7 +10,62 @@
   <script src="script.js" defer></script>
 </head>
 <body>
-  <div class="app-shell">
+  <div class="modal-overlay is-hidden" id="salaryModal" role="dialog" aria-modal="true" aria-labelledby="salaryModalTitle">
+    <section class="modal-card">
+      <span class="modal-icon" aria-hidden="true">&#128181;</span>
+      <p class="eyebrow">Primeiro acesso</p>
+      <h2 id="salaryModalTitle">Informe seu salário principal</h2>
+      <p class="modal-text">
+        O painel só será liberado depois que o rendimento principal for registrado.
+      </p>
+
+      <form class="modal-form" id="salaryForm" autocomplete="off">
+        <label for="salaryInput">
+          Salário/Rendimento Principal
+          <input id="salaryInput" name="salary" type="text" inputmode="decimal" placeholder="Ex.: 3000,00" required>
+        </label>
+
+        <p class="form-message" id="salaryMessage" aria-live="polite"></p>
+
+        <button class="primary-button" type="submit">
+          <span aria-hidden="true">&#128274;</span>
+          Desbloquear painel
+        </button>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-overlay is-hidden" id="extraIncomeModal" role="dialog" aria-modal="true" aria-labelledby="extraIncomeTitle">
+    <section class="modal-card">
+      <span class="modal-icon" aria-hidden="true">&#127775;</span>
+      <p class="eyebrow">Atalho rápido</p>
+      <h2 id="extraIncomeTitle">Adicionar rendimento extra</h2>
+
+      <form class="modal-form" id="extraIncomeForm" autocomplete="off">
+        <label for="extraIncomeDescriptionInput">
+          Descrição
+          <input id="extraIncomeDescriptionInput" name="extraDescription" type="text" placeholder="Ex.: Bónus, devolução, trabalho extra" maxlength="80" required>
+        </label>
+
+        <label for="extraIncomeAmountInput">
+          Valor
+          <input id="extraIncomeAmountInput" name="extraAmount" type="text" inputmode="decimal" placeholder="0,00" required>
+        </label>
+
+        <p class="form-message" id="extraIncomeMessage" aria-live="polite"></p>
+
+        <div class="modal-actions">
+          <button class="secondary-button" id="closeExtraIncomeModal" type="button">Cancelar</button>
+          <button class="primary-button" type="submit">
+            <span aria-hidden="true">&#10133;</span>
+            Adicionar
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div class="app-shell" id="appShell">
     <header class="hero">
       <nav class="topbar" aria-label="Navegacao principal">
         <a class="brand" href="#" aria-label="Ephyra Finance - inicio">
@@ -41,8 +96,9 @@
           <span class="card-label">Saldo atual</span>
           <strong id="balanceAmount">R$ 0,00</strong>
           <small id="balanceStatus">Tudo pronto para comecar.</small>
-          <button class="extra-income-button" id="extraIncomeButton" type="button">
-            <span aria-hidden="true">&#10133;</span>
+          <small class="salary-note">Salário base: <span id="baseSalaryAmount">R$ 0,00</span></small>
+          <button class="quick-income-button" id="extraIncomeButton" type="button">
+            <span aria-hidden="true">&#127775;</span>
             Adicionar Rendimento Extra
           </button>
         </div>
@@ -50,14 +106,19 @@
     </header>
 
     <main>
-      <nav class="tablist" aria-label="Secoes do painel">
-        <button class="tab-button is-active" type="button" data-tab="overview">Visao Geral</button>
-        <button class="tab-button" type="button" data-tab="transactions">Transacoes</button>
-        <button class="tab-button" type="button" data-tab="goals">Metas &amp; Conquistas</button>
+      <nav class="tabs" aria-label="Secoes do painel">
+        <button class="tab-button is-active" type="button" data-tab="overview" aria-controls="tab-overview" aria-selected="true">
+          Visão Geral
+        </button>
+        <button class="tab-button" type="button" data-tab="transactions" aria-controls="tab-transactions" aria-selected="false">
+          Transações
+        </button>
+        <button class="tab-button" type="button" data-tab="goals" aria-controls="tab-goals" aria-selected="false">
+          Metas &amp; Conquistas
+        </button>
       </nav>
 
-      <!-- ===================== TAB 1: VISAO GERAL ===================== -->
-      <div class="tab-panel" data-tab-panel="overview">
+      <section class="tab-panel is-active" id="tab-overview" data-tab-panel="overview">
         <section class="metrics-grid" aria-label="Dashboard financeiro">
           <article class="metric-card">
             <span class="metric-icon" aria-hidden="true">&#128181;</span>
@@ -97,7 +158,7 @@
           <p>Suas despesas ultrapassaram suas receitas.</p>
         </section>
 
-        <div class="content-grid">
+        <section class="content-grid">
           <section class="panel" aria-labelledby="ruleTitle">
             <div class="section-heading">
               <div>
@@ -139,7 +200,7 @@
 
             <ul class="tips-list" id="tipsList" aria-live="polite"></ul>
           </section>
-        </div>
+        </section>
 
         <section class="panel" aria-labelledby="chartsTitle">
           <div class="section-heading">
@@ -208,11 +269,10 @@
             </article>
           </div>
         </section>
-      </div>
+      </section>
 
-      <!-- ===================== TAB 2: TRANSACOES ===================== -->
-      <div class="tab-panel is-hidden" data-tab-panel="transactions">
-        <div class="content-grid">
+      <section class="tab-panel" id="tab-transactions" data-tab-panel="transactions">
+        <section class="content-grid">
           <div class="left-column">
             <section class="panel" aria-labelledby="formTitle">
               <div class="section-heading">
@@ -226,7 +286,7 @@
               <form class="transaction-form" id="transactionForm" autocomplete="off">
                 <label for="descriptionInput">
                   Descricao
-                  <input id="descriptionInput" name="description" type="text" placeholder="Ex.: Salario, mercado, aluguel" maxlength="80" required>
+                  <input id="descriptionInput" name="description" type="text" placeholder="Ex.: mercado, aluguel, curso" maxlength="80" required>
                 </label>
 
                 <label for="amountInput">
@@ -262,7 +322,9 @@
                 </button>
               </form>
             </section>
+          </div>
 
+          <div class="right-column">
             <section class="panel" aria-labelledby="barTitle">
               <div class="section-heading compact-heading">
                 <div>
@@ -295,44 +357,41 @@
               </div>
             </section>
           </div>
+        </section>
 
-          <div class="right-column">
-            <section class="panel transactions-panel" aria-labelledby="listTitle">
-              <div class="section-heading">
-                <div>
-                  <p class="eyebrow">Historico salvo</p>
-                  <h2 id="listTitle">Transacoes</h2>
-                </div>
-                <span aria-hidden="true">&#129534;</span>
-              </div>
-
-              <div class="filters">
-                <div class="filter-buttons" aria-label="Filtros de tipo">
-                  <button class="filter-button is-active" type="button" data-filter="all">Mostrar tudo</button>
-                  <button class="filter-button" type="button" data-filter="income">Receitas</button>
-                  <button class="filter-button" type="button" data-filter="expense">Despesas</button>
-                </div>
-
-                <label class="search-field" for="searchInput">
-                  Pesquisar
-                  <input id="searchInput" type="search" placeholder="Buscar por nome ou categoria">
-                </label>
-              </div>
-
-              <ul class="transaction-list" id="transactionList" aria-live="polite"></ul>
-
-              <div class="empty-state" id="emptyState">
-                <span aria-hidden="true">&#128450;&#65039;</span>
-                <p id="emptyStateText">Nenhuma transacao cadastrada ainda.</p>
-              </div>
-            </section>
+        <section class="panel transactions-panel" aria-labelledby="listTitle">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Historico salvo</p>
+              <h2 id="listTitle">Transacoes</h2>
+            </div>
+            <span aria-hidden="true">&#129534;</span>
           </div>
-        </div>
-      </div>
 
-      <!-- ===================== TAB 3: METAS & CONQUISTAS ===================== -->
-      <div class="tab-panel is-hidden" data-tab-panel="goals">
-        <div class="goals-grid">
+          <div class="filters">
+            <div class="filter-buttons" aria-label="Filtros de tipo">
+              <button class="filter-button is-active" type="button" data-filter="all">Mostrar tudo</button>
+              <button class="filter-button" type="button" data-filter="income">Receitas</button>
+              <button class="filter-button" type="button" data-filter="expense">Despesas</button>
+            </div>
+
+            <label class="search-field" for="searchInput">
+              Pesquisar
+              <input id="searchInput" type="search" placeholder="Buscar por nome ou categoria">
+            </label>
+          </div>
+
+          <ul class="transaction-list" id="transactionList" aria-live="polite"></ul>
+
+          <div class="empty-state" id="emptyState">
+            <span aria-hidden="true">&#128450;&#65039;</span>
+            <p id="emptyStateText">Nenhuma transacao cadastrada ainda.</p>
+          </div>
+        </section>
+      </section>
+
+      <section class="tab-panel" id="tab-goals" data-tab-panel="goals">
+        <section class="insights-grid goals-tab-grid">
           <section class="panel" aria-labelledby="goalsTitle">
             <div class="section-heading">
               <div>
@@ -351,6 +410,11 @@
               <label for="goalAmountInput">
                 Valor desejado
                 <input id="goalAmountInput" name="goalAmount" type="text" inputmode="decimal" placeholder="3000,00" required>
+              </label>
+
+              <label for="goalSavedInput">
+                Valor já guardado
+                <input id="goalSavedInput" name="goalSaved" type="text" inputmode="decimal" placeholder="0,00">
               </label>
 
               <p class="form-message" id="goalMessage" aria-live="polite"></p>
@@ -375,80 +439,9 @@
 
             <div class="achievement-list" id="achievementList" aria-live="polite"></div>
           </section>
-        </div>
-      </div>
+        </section>
+      </section>
     </main>
-  </div>
-
-  <!-- ===================== MODAL: BLOQUEIO INICIAL (SALARIO) ===================== -->
-  <div class="modal-overlay" id="onboardingOverlay">
-    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Vamos comecar</p>
-          <h2 id="onboardingTitle">Qual e o seu salario / rendimento principal?</h2>
-        </div>
-        <span aria-hidden="true">&#128274;</span>
-      </div>
-
-      <p class="hero-text" style="color: var(--muted); font-size: 0.95rem;">
-        Informe seu rendimento principal para desbloquear o painel e comecar a organizar suas financas.
-      </p>
-
-      <form id="onboardingForm" autocomplete="off">
-        <label for="onboardingSalaryInput">
-          Salario / Rendimento principal
-          <input id="onboardingSalaryInput" name="onboardingSalary" type="text" inputmode="decimal" placeholder="0,00" required>
-        </label>
-
-        <p class="form-message" id="onboardingMessage" aria-live="polite"></p>
-
-        <button class="primary-button" type="submit">
-          <span aria-hidden="true">&#128274;</span>
-          Comecar a usar
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- ===================== MODAL: RENDIMENTO EXTRA ===================== -->
-  <div class="modal-overlay is-hidden" id="extraIncomeOverlay">
-    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="extraIncomeTitle">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Rendimento extra</p>
-          <h2 id="extraIncomeTitle">Adicionar rendimento extra</h2>
-        </div>
-        <span aria-hidden="true">&#128176;</span>
-      </div>
-
-      <p class="hero-text" style="color: var(--muted); font-size: 0.95rem;">
-        Use para bonus, devolucoes ou trabalhos extras. Isso atualiza suas receitas e saldo sem alterar o salario base.
-      </p>
-
-      <form id="extraIncomeForm" autocomplete="off">
-        <label for="extraIncomeDescriptionInput">
-          Descricao
-          <input id="extraIncomeDescriptionInput" name="extraIncomeDescription" type="text" placeholder="Ex.: Bonus, devolucao, freela" maxlength="80">
-        </label>
-
-        <label for="extraIncomeAmountInput">
-          Valor
-          <input id="extraIncomeAmountInput" name="extraIncomeAmount" type="text" inputmode="decimal" placeholder="0,00" required>
-        </label>
-
-        <p class="form-message" id="extraIncomeMessage" aria-live="polite"></p>
-
-        <button class="primary-button" type="submit">
-          <span aria-hidden="true">&#10133;</span>
-          Adicionar rendimento
-        </button>
-
-        <button class="modal-secondary-button" type="button" id="extraIncomeCancelButton">
-          Cancelar
-        </button>
-      </form>
-    </div>
   </div>
 </body>
 </html>

@@ -1,11 +1,27 @@
-
 const STORAGE_KEY = "ephyra-finance-state";
 const LEGACY_STORAGE_KEY = "ephyra-finance-transactions";
 
 const CATEGORY_OPTIONS = {
-  income: ["Salário", "Freelance", "Presente", "Bônus/Extra", "Outros"],
+  income: ["Salário", "Freelance", "Presente", "Outros"],
   expense: ["Alimentação", "Transporte", "Saúde", "Educação", "Lazer", "Contas", "Investimento", "Outros"]
 };
+
+const appShell = document.querySelector("#appShell");
+const salaryModal = document.querySelector("#salaryModal");
+const salaryForm = document.querySelector("#salaryForm");
+const salaryInput = document.querySelector("#salaryInput");
+const salaryMessage = document.querySelector("#salaryMessage");
+
+const extraIncomeButton = document.querySelector("#extraIncomeButton");
+const extraIncomeModal = document.querySelector("#extraIncomeModal");
+const extraIncomeForm = document.querySelector("#extraIncomeForm");
+const extraIncomeDescriptionInput = document.querySelector("#extraIncomeDescriptionInput");
+const extraIncomeAmountInput = document.querySelector("#extraIncomeAmountInput");
+const extraIncomeMessage = document.querySelector("#extraIncomeMessage");
+const closeExtraIncomeModal = document.querySelector("#closeExtraIncomeModal");
+
+const tabButtons = document.querySelectorAll("[data-tab]");
+const tabPanels = document.querySelectorAll("[data-tab-panel]");
 
 const transactionForm = document.querySelector("#transactionForm");
 const descriptionInput = document.querySelector("#descriptionInput");
@@ -17,6 +33,7 @@ const typeInputs = document.querySelectorAll('input[name="type"]');
 const goalForm = document.querySelector("#goalForm");
 const goalNameInput = document.querySelector("#goalNameInput");
 const goalAmountInput = document.querySelector("#goalAmountInput");
+const goalSavedInput = document.querySelector("#goalSavedInput");
 const goalMessage = document.querySelector("#goalMessage");
 const goalList = document.querySelector("#goalList");
 
@@ -30,6 +47,7 @@ const searchInput = document.querySelector("#searchInput");
 
 const balanceAmount = document.querySelector("#balanceAmount");
 const dashboardBalanceAmount = document.querySelector("#dashboardBalanceAmount");
+const baseSalaryAmount = document.querySelector("#baseSalaryAmount");
 const balanceStatus = document.querySelector("#balanceStatus");
 const incomeAmount = document.querySelector("#incomeAmount");
 const expenseAmount = document.querySelector("#expenseAmount");
@@ -51,22 +69,6 @@ const largestIncome = document.querySelector("#largestIncome");
 const averageExpense = document.querySelector("#averageExpense");
 const averageIncome = document.querySelector("#averageIncome");
 const totalMoved = document.querySelector("#totalMoved");
-
-const onboardingOverlay = document.querySelector("#onboardingOverlay");
-const onboardingForm = document.querySelector("#onboardingForm");
-const onboardingSalaryInput = document.querySelector("#onboardingSalaryInput");
-const onboardingMessage = document.querySelector("#onboardingMessage");
-
-const extraIncomeButton = document.querySelector("#extraIncomeButton");
-const extraIncomeOverlay = document.querySelector("#extraIncomeOverlay");
-const extraIncomeForm = document.querySelector("#extraIncomeForm");
-const extraIncomeDescriptionInput = document.querySelector("#extraIncomeDescriptionInput");
-const extraIncomeAmountInput = document.querySelector("#extraIncomeAmountInput");
-const extraIncomeMessage = document.querySelector("#extraIncomeMessage");
-const extraIncomeCancelButton = document.querySelector("#extraIncomeCancelButton");
-
-const tabButtons = document.querySelectorAll("[data-tab]");
-const tabPanels = document.querySelectorAll("[data-tab-panel]");
 
 let appState = loadState();
 let activeFilter = "all";
@@ -104,39 +106,36 @@ const ACHIEVEMENTS = [
     isUnlocked: () => appState.goals.length > 0
   },
   {
-    id: "goal-master",
+    id: "savings-master",
     label: "🏆 Mestre da Poupança",
     isUnlocked: () => appState.goals.some((goal) => getGoalProgress(goal).percent >= 100)
   },
   {
     id: "green-month",
     label: "🏆 Mês no Verde",
-    isUnlocked: () => {
-      const { income, expense } = appState.totals;
-      return income > 0 && income >= expense * 1.2;
-    }
+    isUnlocked: () => appState.totals.income > 0 && appState.totals.balance >= appState.totals.income * 0.2
   },
   {
-    id: "extra-bonus",
-    label: "🏆 Bônus de Esforço",
-    isUnlocked: () => appState.hasAddedExtraIncome === true
+    id: "effort-bonus",
+    label: "🏆 Bónus de Esforço",
+    isUnlocked: () => appState.transactions.some((transaction) => transaction.source === "extra-income")
   },
   {
     id: "conscious-investor",
     label: "🏆 Investidor Consciente",
-    isUnlocked: () => appState.transactions.some(
-      (transaction) => transaction.type === "expense" && transaction.category === "Investimento"
-    )
+    isUnlocked: () => appState.transactions.some((transaction) => {
+      return transaction.type === "expense" && transaction.category === "Investimento";
+    })
   }
 ];
 
 function createEmptyState() {
   return {
+    baseSalary: 0,
     transactions: [],
     goals: [],
     achievements: [],
     positiveBalanceSince: null,
-    hasAddedExtraIncome: false,
     totals: {
       income: 0,
       expense: 0,
@@ -170,19 +169,54 @@ function loadState() {
 }
 
 function normalizeState(state) {
+  const sourceState = state && typeof state === "object" ? state : {};
   const safeState = createEmptyState();
-  const transactions = Array.isArray(state.transactions) ? state.transactions : [];
-  const goals = Array.isArray(state.goals) ? state.goals : [];
-  const achievements = Array.isArray(state.achievements) ? state.achievements : [];
+  const transactions = Array.isArray(sourceState.transactions) ? sourceState.transactions : [];
+  const goals = Array.isArray(sourceState.goals) ? sourceState.goals : [];
+  const achievements = Array.isArray(sourceState.achievements) ? sourceState.achievements : [];
+  const baseSalary = Number(sourceState.baseSalary);
 
   safeState.transactions = transactions.map(normalizeTransaction).filter(Boolean);
   safeState.goals = goals.map(normalizeGoal).filter(Boolean);
   safeState.achievements = achievements.filter((achievement) => typeof achievement === "string");
-  safeState.positiveBalanceSince = state.positiveBalanceSince || null;
-  safeState.hasAddedExtraIncome = Boolean(state.hasAddedExtraIncome);
+  safeState.positiveBalanceSince = sourceState.positiveBalanceSince || null;
+  safeState.baseSalary = Number.isFinite(baseSalary) && baseSalary > 0
+    ? baseSalary
+    : findBaseSalaryFromTransactions(safeState.transactions);
+  migrateGoalSavingsToTransactions(safeState);
   safeState.totals = calculateTotals(safeState.transactions);
 
   return safeState;
+}
+
+function migrateGoalSavingsToTransactions(state) {
+  state.goals.forEach((goal) => {
+    const reservedInHistory = state.transactions
+      .filter((transaction) => transaction.source === "goal-saving" && transaction.goalId === goal.id)
+      .reduce((sum, transaction) => sum + transaction.amount, 0);
+    const missingReservedAmount = Number((goal.savedAmount - reservedInHistory).toFixed(2));
+
+    if (missingReservedAmount <= 0) {
+      return;
+    }
+
+    state.transactions.push({
+      id: createId("transaction"),
+      description: `Reserva para meta: ${goal.name}`,
+      amount: missingReservedAmount,
+      type: "expense",
+      category: "Investimento",
+      source: "goal-saving",
+      goalId: goal.id,
+      date: new Date(goal.createdAt).toLocaleDateString("pt-BR"),
+      createdAt: goal.createdAt
+    });
+  });
+}
+
+function findBaseSalaryFromTransactions(transactions) {
+  const salaryTransaction = transactions.find((transaction) => transaction.source === "salary");
+  return salaryTransaction ? salaryTransaction.amount : 0;
 }
 
 function normalizeTransaction(transaction) {
@@ -203,6 +237,8 @@ function normalizeTransaction(transaction) {
     amount,
     type,
     category,
+    source: transaction.source || "manual",
+    goalId: transaction.goalId || null,
     date: transaction.date || new Date().toLocaleDateString("pt-BR"),
     createdAt: transaction.createdAt || new Date().toISOString()
   };
@@ -210,6 +246,7 @@ function normalizeTransaction(transaction) {
 
 function normalizeGoal(goal) {
   const targetAmount = Number(goal.targetAmount);
+  const savedAmount = Number(goal.savedAmount);
   const name = String(goal.name || "").trim();
 
   if (!name || !Number.isFinite(targetAmount) || targetAmount <= 0) {
@@ -220,6 +257,9 @@ function normalizeGoal(goal) {
     id: goal.id || createId("goal"),
     name,
     targetAmount,
+    savedAmount: Number.isFinite(savedAmount) && savedAmount > 0
+      ? Math.min(savedAmount, targetAmount)
+      : 0,
     createdAt: goal.createdAt || new Date().toISOString()
   };
 }
@@ -311,6 +351,20 @@ function updateCategoryOptions() {
   });
 }
 
+function createTransaction({ description, amount, type, category, source = "manual", goalId = null }) {
+  return {
+    id: createId("transaction"),
+    description,
+    amount,
+    type,
+    category,
+    source,
+    goalId,
+    date: new Date().toLocaleDateString("pt-BR"),
+    createdAt: new Date().toISOString()
+  };
+}
+
 function updateDashboard() {
   syncTotals();
 
@@ -321,6 +375,7 @@ function updateDashboard() {
 
   balanceAmount.textContent = formatMoney(balance);
   dashboardBalanceAmount.textContent = formatMoney(balance);
+  baseSalaryAmount.textContent = formatMoney(appState.baseSalary);
   incomeAmount.textContent = formatMoney(income);
   expenseAmount.textContent = formatMoney(expense);
   transactionCount.textContent = String(appState.transactions.length);
@@ -342,7 +397,7 @@ function updateBalanceStatus() {
   const { balance } = appState.totals;
 
   if (appState.transactions.length === 0) {
-    balanceStatus.textContent = "Tudo pronto para comecar.";
+    balanceStatus.textContent = "Informe seu salário para iniciar o painel.";
     return;
   }
 
@@ -453,7 +508,7 @@ function getFinancialTips() {
   const tips = [];
 
   if (appState.transactions.length === 0) {
-    tips.push("Cadastre receitas e despesas para receber dicas personalizadas.");
+    tips.push("Registre seu salário para receber dicas personalizadas.");
     return tips;
   }
 
@@ -471,6 +526,10 @@ function getFinancialTips() {
 
   if (balance > 0) {
     tips.push("Seu saldo está saudável. Continue mantendo o controle.");
+  }
+
+  if (appState.transactions.some((transaction) => transaction.source === "extra-income")) {
+    tips.push("Rendimentos extras foram registrados. Direcione parte deles para metas ou investimentos.");
   }
 
   if (appState.goals.length > 0 && balance > 0) {
@@ -579,14 +638,36 @@ function createGoalElement(goal) {
   fill.style.width = `${progress.percent}%`;
 
   track.appendChild(fill);
-  item.append(header, values, track);
+
+  const contributionForm = document.createElement("form");
+  contributionForm.className = "goal-contribution-form";
+  contributionForm.dataset.id = goal.id;
+  contributionForm.autocomplete = "off";
+
+  const contributionLabel = document.createElement("label");
+  contributionLabel.textContent = "Guardar mais dinheiro nesta meta";
+
+  const contributionInput = document.createElement("input");
+  contributionInput.type = "text";
+  contributionInput.inputMode = "decimal";
+  contributionInput.placeholder = "0,00";
+  contributionInput.setAttribute("aria-label", `Valor para guardar na meta ${goal.name}`);
+
+  const contributionButton = document.createElement("button");
+  contributionButton.className = "primary-button";
+  contributionButton.type = "submit";
+  contributionButton.textContent = "Guardar";
+
+  contributionLabel.appendChild(contributionInput);
+  contributionForm.append(contributionLabel, contributionButton);
+
+  item.append(header, values, track, contributionForm);
 
   return item;
 }
 
 function getGoalProgress(goal) {
-  const availableBalance = Math.max(appState.totals.balance, 0);
-  const current = Math.min(availableBalance, goal.targetAmount);
+  const current = Math.min(goal.savedAmount || 0, goal.targetAmount);
   const percent = Math.min((current / goal.targetAmount) * 100, 100);
 
   return { current, percent };
@@ -799,6 +880,97 @@ function clearGoalMessage() {
   setMessage(goalMessage, "");
 }
 
+function clearSalaryMessage() {
+  setMessage(salaryMessage, "");
+}
+
+function clearExtraIncomeMessage() {
+  setMessage(extraIncomeMessage, "");
+}
+
+function shouldLockApp() {
+  return appState.baseSalary <= 0 && appState.transactions.length === 0;
+}
+
+function updateOnboardingGate() {
+  const locked = shouldLockApp();
+  salaryModal.classList.toggle("is-hidden", !locked);
+  appShell.classList.toggle("is-soft-locked", locked);
+
+  if (locked) {
+    setTimeout(() => salaryInput.focus(), 40);
+  }
+}
+
+function submitInitialSalary(event) {
+  event.preventDefault();
+
+  const amount = parseAmount(salaryInput.value);
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    setMessage(salaryMessage, "Informe um salário maior que zero.");
+    salaryInput.focus();
+    return;
+  }
+
+  appState.baseSalary = amount;
+  appState.transactions.unshift(createTransaction({
+    description: "Salário/Rendimento Principal",
+    amount,
+    type: "income",
+    category: "Salário",
+    source: "salary"
+  }));
+
+  saveState();
+  salaryForm.reset();
+  clearSalaryMessage();
+  renderApp();
+}
+
+function openExtraIncomeModal() {
+  extraIncomeModal.classList.remove("is-hidden");
+  clearExtraIncomeMessage();
+  setTimeout(() => extraIncomeDescriptionInput.focus(), 40);
+}
+
+function closeExtraIncomePanel() {
+  extraIncomeModal.classList.add("is-hidden");
+  extraIncomeForm.reset();
+  clearExtraIncomeMessage();
+}
+
+function addExtraIncome(event) {
+  event.preventDefault();
+
+  const description = extraIncomeDescriptionInput.value.trim();
+  const amount = parseAmount(extraIncomeAmountInput.value);
+
+  if (!description) {
+    setMessage(extraIncomeMessage, "Informe a descrição do rendimento extra.");
+    extraIncomeDescriptionInput.focus();
+    return;
+  }
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    setMessage(extraIncomeMessage, "Informe um valor maior que zero.");
+    extraIncomeAmountInput.focus();
+    return;
+  }
+
+  appState.transactions.unshift(createTransaction({
+    description,
+    amount,
+    type: "income",
+    category: "Outros",
+    source: "extra-income"
+  }));
+
+  saveState();
+  closeExtraIncomePanel();
+  renderApp();
+}
+
 function addTransaction(event) {
   event.preventDefault();
 
@@ -819,15 +991,13 @@ function addTransaction(event) {
     return;
   }
 
-  appState.transactions.unshift({
-    id: createId("transaction"),
+  appState.transactions.unshift(createTransaction({
     description,
     amount,
     type,
     category,
-    date: new Date().toLocaleDateString("pt-BR"),
-    createdAt: new Date().toISOString()
-  });
+    source: "manual"
+  }));
 
   saveState();
   renderApp();
@@ -839,18 +1009,39 @@ function addTransaction(event) {
 }
 
 function removeTransaction(transactionId) {
+  const removedTransaction = appState.transactions.find(
+    (transaction) => transaction.id === transactionId
+  );
+
   appState.transactions = appState.transactions.filter(
     (transaction) => transaction.id !== transactionId
   );
+
+  if (removedTransaction?.source === "salary") {
+    appState.baseSalary = findBaseSalaryFromTransactions(appState.transactions);
+  }
+
+  if (removedTransaction?.source === "goal-saving" && removedTransaction.goalId) {
+    const goal = appState.goals.find((item) => item.id === removedTransaction.goalId);
+
+    if (goal) {
+      goal.savedAmount = Math.max(goal.savedAmount - removedTransaction.amount, 0);
+    }
+  }
+
   saveState();
   renderApp();
 }
 
 function addGoal(event) {
   event.preventDefault();
+  syncTotals();
 
   const name = goalNameInput.value.trim();
   const targetAmount = parseAmount(goalAmountInput.value);
+  const savedAmountText = goalSavedInput.value.trim();
+  const savedAmount = savedAmountText ? parseAmount(savedAmountText) : 0;
+  const availableBalance = Math.max(appState.totals.balance, 0);
 
   if (!name) {
     setMessage(goalMessage, "Informe o nome da meta.");
@@ -864,12 +1055,37 @@ function addGoal(event) {
     return;
   }
 
-  appState.goals.unshift({
+  if (savedAmountText && (!Number.isFinite(savedAmount) || savedAmount < 0)) {
+    setMessage(goalMessage, "Informe um valor guardado válido.");
+    goalSavedInput.focus();
+    return;
+  }
+
+  if (savedAmount > targetAmount) {
+    setMessage(goalMessage, "O valor guardado não pode ser maior que o valor desejado.");
+    goalSavedInput.focus();
+    return;
+  }
+
+  if (savedAmount > availableBalance) {
+    setMessage(goalMessage, "Saldo insuficiente para guardar esse valor na meta.");
+    goalSavedInput.focus();
+    return;
+  }
+
+  const goal = {
     id: createId("goal"),
     name,
     targetAmount,
+    savedAmount,
     createdAt: new Date().toISOString()
-  });
+  };
+
+  appState.goals.unshift(goal);
+
+  if (savedAmount > 0) {
+    appState.transactions.unshift(createGoalSavingTransaction(goal, savedAmount));
+  }
 
   saveState();
   renderApp();
@@ -880,8 +1096,58 @@ function addGoal(event) {
 
 function removeGoal(goalId) {
   appState.goals = appState.goals.filter((goal) => goal.id !== goalId);
+  appState.transactions = appState.transactions.filter((transaction) => {
+    return !(transaction.source === "goal-saving" && transaction.goalId === goalId);
+  });
   saveState();
   renderApp();
+}
+
+function createGoalSavingTransaction(goal, amount) {
+  return createTransaction({
+    description: `Reserva para meta: ${goal.name}`,
+    amount,
+    type: "expense",
+    category: "Investimento",
+    source: "goal-saving",
+    goalId: goal.id
+  });
+}
+
+function addMoneyToGoal(goalId, amount) {
+  syncTotals();
+
+  const goal = appState.goals.find((item) => item.id === goalId);
+
+  if (!goal) {
+    return;
+  }
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    setMessage(goalMessage, "Informe um valor maior que zero para guardar na meta.");
+    return;
+  }
+
+  const remainingAmount = Math.max(goal.targetAmount - goal.savedAmount, 0);
+
+  if (remainingAmount === 0) {
+    setMessage(goalMessage, "Essa meta já foi concluída.", "success");
+    return;
+  }
+
+  const amountToSave = Math.min(amount, remainingAmount);
+  const availableBalance = Math.max(appState.totals.balance, 0);
+
+  if (amountToSave > availableBalance) {
+    setMessage(goalMessage, "Saldo insuficiente para guardar esse valor na meta.");
+    return;
+  }
+
+  goal.savedAmount = Math.min(goal.savedAmount + amountToSave, goal.targetAmount);
+  appState.transactions.unshift(createGoalSavingTransaction(goal, amountToSave));
+  saveState();
+  renderApp();
+  setMessage(goalMessage, `Valor guardado. Faltam ${formatMoney(Math.max(goal.targetAmount - goal.savedAmount, 0))}.`, "success");
 }
 
 function handleTransactionListClick(event) {
@@ -912,13 +1178,30 @@ function handleGoalListClick(event) {
   item.addEventListener("animationend", () => removeGoal(goalId), { once: true });
 }
 
+function handleGoalListSubmit(event) {
+  const contributionForm = event.target.closest(".goal-contribution-form");
+
+  if (!contributionForm) {
+    return;
+  }
+
+  event.preventDefault();
+
+  const input = contributionForm.querySelector("input");
+  const amount = parseAmount(input.value);
+
+  addMoneyToGoal(contributionForm.dataset.id, amount);
+  input.value = "";
+}
+
 function clearAllData() {
   const hasData = appState.transactions.length > 0
     || appState.goals.length > 0
-    || appState.achievements.length > 0;
+    || appState.achievements.length > 0
+    || appState.baseSalary > 0;
 
   if (!hasData) {
-    setMessage(formMessage, "Nao existem dados para limpar.");
+    updateOnboardingGate();
     return;
   }
 
@@ -935,94 +1218,8 @@ function clearAllData() {
   searchTerm = "";
   searchInput.value = "";
   updateFilterButtons();
+  closeExtraIncomePanel();
   renderApp();
-  setMessage(formMessage, "Todos os dados foram apagados.", "success");
-  checkOnboarding();
-}
-
-function checkOnboarding() {
-  const needsOnboarding = appState.transactions.length === 0;
-  onboardingOverlay.classList.toggle("is-hidden", !needsOnboarding);
-  document.body.style.overflow = needsOnboarding ? "hidden" : "";
-}
-
-function handleOnboardingSubmit(event) {
-  event.preventDefault();
-
-  const amount = parseAmount(onboardingSalaryInput.value);
-
-  if (!Number.isFinite(amount) || amount <= 0) {
-    setMessage(onboardingMessage, "Informe um valor de salario maior que zero.");
-    onboardingSalaryInput.focus();
-    return;
-  }
-
-  appState.transactions.unshift({
-    id: createId("transaction"),
-    description: "Salário",
-    amount,
-    type: "income",
-    category: "Salário",
-    date: new Date().toLocaleDateString("pt-BR"),
-    createdAt: new Date().toISOString()
-  });
-
-  saveState();
-  renderApp();
-  onboardingForm.reset();
-  setMessage(onboardingMessage, "");
-  checkOnboarding();
-}
-
-function openExtraIncomeModal() {
-  extraIncomeOverlay.classList.remove("is-hidden");
-  extraIncomeDescriptionInput.focus();
-}
-
-function closeExtraIncomeModal() {
-  extraIncomeOverlay.classList.add("is-hidden");
-  extraIncomeForm.reset();
-  setMessage(extraIncomeMessage, "");
-}
-
-function handleExtraIncomeSubmit(event) {
-  event.preventDefault();
-
-  const description = extraIncomeDescriptionInput.value.trim() || "Rendimento extra";
-  const amount = parseAmount(extraIncomeAmountInput.value);
-
-  if (!Number.isFinite(amount) || amount <= 0) {
-    setMessage(extraIncomeMessage, "Informe um valor maior que zero.");
-    extraIncomeAmountInput.focus();
-    return;
-  }
-
-  appState.transactions.unshift({
-    id: createId("transaction"),
-    description,
-    amount,
-    type: "income",
-    category: "Bônus/Extra",
-    date: new Date().toLocaleDateString("pt-BR"),
-    createdAt: new Date().toISOString()
-  });
-
-  appState.hasAddedExtraIncome = true;
-
-  saveState();
-  renderApp();
-  closeExtraIncomeModal();
-  setMessage(formMessage, "Rendimento extra adicionado com sucesso.", "success");
-}
-
-function switchTab(tabName) {
-  tabButtons.forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.tab === tabName);
-  });
-
-  tabPanels.forEach((panel) => {
-    panel.classList.toggle("is-hidden", panel.dataset.tabPanel !== tabName);
-  });
 }
 
 function handleAmountInput(input) {
@@ -1031,6 +1228,18 @@ function handleAmountInput(input) {
   if (input.value !== sanitizedValue) {
     input.value = sanitizedValue;
   }
+}
+
+function switchTab(tabName) {
+  tabButtons.forEach((button) => {
+    const active = button.dataset.tab === tabName;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-selected", String(active));
+  });
+
+  tabPanels.forEach((panel) => {
+    panel.classList.toggle("is-active", panel.dataset.tabPanel === tabName);
+  });
 }
 
 function updateFilterButtons() {
@@ -1048,7 +1257,27 @@ function renderApp() {
   renderGoals();
   renderAchievements();
   updateCharts();
+  updateOnboardingGate();
 }
+
+salaryForm.addEventListener("submit", submitInitialSalary);
+extraIncomeButton.addEventListener("click", openExtraIncomeModal);
+extraIncomeForm.addEventListener("submit", addExtraIncome);
+closeExtraIncomeModal.addEventListener("click", closeExtraIncomePanel);
+
+salaryInput.addEventListener("input", () => {
+  handleAmountInput(salaryInput);
+  clearSalaryMessage();
+});
+extraIncomeAmountInput.addEventListener("input", () => {
+  handleAmountInput(extraIncomeAmountInput);
+  clearExtraIncomeMessage();
+});
+extraIncomeDescriptionInput.addEventListener("input", clearExtraIncomeMessage);
+
+tabButtons.forEach((button) => {
+  button.addEventListener("click", () => switchTab(button.dataset.tab));
+});
 
 transactionForm.addEventListener("submit", addTransaction);
 goalForm.addEventListener("submit", addGoal);
@@ -1061,6 +1290,10 @@ amountInput.addEventListener("input", () => {
 goalNameInput.addEventListener("input", clearGoalMessage);
 goalAmountInput.addEventListener("input", () => {
   handleAmountInput(goalAmountInput);
+  clearGoalMessage();
+});
+goalSavedInput.addEventListener("input", () => {
+  handleAmountInput(goalSavedInput);
   clearGoalMessage();
 });
 
@@ -1086,28 +1319,10 @@ searchInput.addEventListener("input", () => {
 
 transactionList.addEventListener("click", handleTransactionListClick);
 goalList.addEventListener("click", handleGoalListClick);
+goalList.addEventListener("submit", handleGoalListSubmit);
 clearDataButton.addEventListener("click", clearAllData);
-
-onboardingForm.addEventListener("submit", handleOnboardingSubmit);
-onboardingSalaryInput.addEventListener("input", () => {
-  handleAmountInput(onboardingSalaryInput);
-  setMessage(onboardingMessage, "");
-});
-
-extraIncomeButton.addEventListener("click", openExtraIncomeModal);
-extraIncomeCancelButton.addEventListener("click", closeExtraIncomeModal);
-extraIncomeForm.addEventListener("submit", handleExtraIncomeSubmit);
-extraIncomeAmountInput.addEventListener("input", () => {
-  handleAmountInput(extraIncomeAmountInput);
-  setMessage(extraIncomeMessage, "");
-});
-
-tabButtons.forEach((button) => {
-  button.addEventListener("click", () => switchTab(button.dataset.tab));
-});
 
 updateCategoryOptions();
 initializeCharts();
 saveState();
 renderApp();
-checkOnboarding();
