@@ -144,8 +144,41 @@ function createEmptyState() {
   };
 }
 
+function storageGet(key) {
+  try {
+    if (typeof localStorage === "undefined") {
+      return null;
+    }
+
+    return localStorage.getItem(key);
+  } catch (error) {
+    console.warn("Nao foi possivel ler o LocalStorage.", error);
+    return null;
+  }
+}
+
+function storageSet(key, value) {
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(key, value);
+    }
+  } catch (error) {
+    console.warn("Nao foi possivel salvar no LocalStorage.", error);
+  }
+}
+
+function storageRemove(key) {
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.removeItem(key);
+    }
+  } catch (error) {
+    console.warn("Nao foi possivel limpar o LocalStorage.", error);
+  }
+}
+
 function loadState() {
-  const savedState = localStorage.getItem(STORAGE_KEY);
+  const savedState = storageGet(STORAGE_KEY);
 
   if (savedState) {
     try {
@@ -155,7 +188,7 @@ function loadState() {
     }
   }
 
-  const legacyTransactions = localStorage.getItem(LEGACY_STORAGE_KEY);
+  const legacyTransactions = storageGet(LEGACY_STORAGE_KEY);
 
   if (legacyTransactions) {
     try {
@@ -183,10 +216,33 @@ function normalizeState(state) {
   safeState.baseSalary = Number.isFinite(baseSalary) && baseSalary > 0
     ? baseSalary
     : findBaseSalaryFromTransactions(safeState.transactions);
+  ensureBaseSalaryTransaction(safeState);
   migrateGoalSavingsToTransactions(safeState);
   safeState.totals = calculateTotals(safeState.transactions);
 
   return safeState;
+}
+
+function ensureBaseSalaryTransaction(state) {
+  const hasSalaryTransaction = state.transactions.some((transaction) => {
+    return transaction.source === "salary";
+  });
+
+  if (state.baseSalary <= 0 || hasSalaryTransaction) {
+    return;
+  }
+
+  state.transactions.unshift({
+    id: createId("transaction"),
+    description: "Salário/Rendimento Principal",
+    amount: state.baseSalary,
+    type: "income",
+    category: "Salário",
+    source: "salary",
+    goalId: null,
+    date: new Date().toLocaleDateString("pt-BR"),
+    createdAt: new Date().toISOString()
+  });
 }
 
 function migrateGoalSavingsToTransactions(state) {
@@ -268,8 +324,8 @@ function saveState() {
   syncTotals();
   updatePositiveBalanceTracking();
   evaluateAchievements();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-  localStorage.removeItem(LEGACY_STORAGE_KEY);
+  storageSet(STORAGE_KEY, JSON.stringify(appState));
+  storageRemove(LEGACY_STORAGE_KEY);
 }
 
 function syncTotals() {
@@ -301,7 +357,13 @@ function formatMoney(value) {
 }
 
 function parseAmount(value) {
-  const normalizedValue = value.trim().replace(",", ".");
+  const cleanedValue = value.trim().replace(/[^\d,.]/g, "");
+
+  if (!cleanedValue) {
+    return Number.NaN;
+  }
+
+  const normalizedValue = normalizeMoneyString(cleanedValue);
 
   if (!/^\d+(\.\d{1,2})?$/.test(normalizedValue)) {
     return Number.NaN;
@@ -310,22 +372,43 @@ function parseAmount(value) {
   return Number(normalizedValue);
 }
 
-function sanitizeAmountValue(value) {
-  const cleanedValue = value.replace(/[^\d,.]/g, "");
-  const separatorIndex = cleanedValue.search(/[,.]/);
+function normalizeMoneyString(value) {
+  const lastComma = value.lastIndexOf(",");
+  const lastDot = value.lastIndexOf(".");
+  const hasComma = lastComma !== -1;
+  const hasDot = lastDot !== -1;
 
-  if (separatorIndex === -1) {
-    return cleanedValue;
+  if (hasComma && hasDot) {
+    const decimalIndex = Math.max(lastComma, lastDot);
+    const integerPart = value.slice(0, decimalIndex).replace(/[,.]/g, "");
+    const decimalPart = value.slice(decimalIndex + 1).replace(/[,.]/g, "");
+
+    return decimalPart ? `${integerPart}.${decimalPart}` : integerPart;
   }
 
-  const integerPart = cleanedValue.slice(0, separatorIndex).replace(/[,.]/g, "");
-  const decimalSeparator = cleanedValue.charAt(separatorIndex);
-  const decimalPart = cleanedValue
-    .slice(separatorIndex + 1)
-    .replace(/[,.]/g, "")
-    .slice(0, 2);
+  if (hasComma || hasDot) {
+    const separator = hasComma ? "," : ".";
+    const parts = value.split(separator);
 
-  return `${integerPart}${decimalSeparator}${decimalPart}`;
+    if (parts.length > 2) {
+      return parts.join("");
+    }
+
+    const integerPart = parts[0];
+    const decimalPart = parts[1] || "";
+
+    if (decimalPart.length === 3) {
+      return `${integerPart}${decimalPart}`;
+    }
+
+    return decimalPart ? `${integerPart}.${decimalPart}` : integerPart;
+  }
+
+  return value;
+}
+
+function sanitizeAmountValue(value) {
+  return value.replace(/[^\d,.]/g, "");
 }
 
 function normalizeSearchText(text) {
@@ -889,7 +972,7 @@ function clearExtraIncomeMessage() {
 }
 
 function shouldLockApp() {
-  return appState.baseSalary <= 0 && appState.transactions.length === 0;
+  return appState.baseSalary <= 0;
 }
 
 function updateOnboardingGate() {
@@ -925,6 +1008,8 @@ function submitInitialSalary(event) {
   saveState();
   salaryForm.reset();
   clearSalaryMessage();
+  salaryModal.classList.add("is-hidden");
+  appShell.classList.remove("is-soft-locked");
   renderApp();
 }
 
@@ -1212,8 +1297,8 @@ function clearAllData() {
   }
 
   appState = createEmptyState();
-  localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem(LEGACY_STORAGE_KEY);
+  storageRemove(STORAGE_KEY);
+  storageRemove(LEGACY_STORAGE_KEY);
   activeFilter = "all";
   searchTerm = "";
   searchInput.value = "";
