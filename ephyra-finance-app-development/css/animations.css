@@ -1,0 +1,43 @@
+/* ===== EPHYRA FINANCE — ANIMATIONS ===== */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeOut{from{opacity:1}to{opacity:0}}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes slideDown{from{transform:translateY(-30px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes slideLeft{from{transform:translateX(30px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes slideRight{from{transform:translateX(-30px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes scaleIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes glow{0%,100%{box-shadow:0 0 5px var(--color-primary)}50%{box-shadow:0 0 25px var(--color-primary)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes progressFill{from{width:0}}
+@keyframes confetti{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(600px) rotate(720deg);opacity:0}}
+@keyframes levelUp{0%{transform:scale(1)}25%{transform:scale(1.15)}50%{transform:scale(1);box-shadow:var(--shadow-glow)}75%{transform:scale(1.05)}100%{transform:scale(1)}}
+@keyframes ripple{to{transform:scale(4);opacity:0}}
+
+.anim-fade{animation:fadeIn .4s ease both}
+.anim-slide-up{animation:slideUp .5s ease both}
+.anim-slide-down{animation:slideDown .5s ease both}
+.anim-scale{animation:scaleIn .35s ease both}
+.anim-bounce{animation:bounce .6s ease}
+.anim-pulse{animation:pulse 2s infinite}
+.anim-glow{animation:glow 2s infinite}
+.anim-spin{animation:spin 1s linear infinite}
+.anim-level{animation:levelUp .8s ease}
+
+/* Skeleton loading */
+.skeleton{background:linear-gradient(90deg,var(--bg-input) 25%,var(--bg-hover) 50%,var(--bg-input) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius-sm)}
+
+/* Ripple effect on buttons */
+.ripple{position:relative;overflow:hidden}
+.ripple::after{content:'';position:absolute;width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.35);transform:scale(0);pointer-events:none}
+.ripple:active::after{animation:ripple .5s ease-out}
+
+/* Stagger children */
+.stagger>*:nth-child(1){animation-delay:.05s}
+.stagger>*:nth-child(2){animation-delay:.1s}
+.stagger>*:nth-child(3){animation-delay:.15s}
+.stagger>*:nth-child(4){animation-delay:.2s}
+.stagger>*:nth-child(5){animation-delay:.25s}
+.stagger>*:nth-child(6){animation-delay:.3s}
