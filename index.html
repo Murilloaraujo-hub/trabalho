@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Ephyra Finance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--cp:#7c3aed;--cl:#a78bfa;--cs:#1e40af;--cg:#10b981;--cr:#ef4444;--cw:#f59e0b;--cy:#fbbf24;--rm:12px;--rl:16px;--rx:24px}
+.dark{--bg:#0a0e1a;--bg2:#111827;--bgc:rgba(17,24,39,.7);--bgs:#1a2236;--bgi:#1e293b;--bgh:rgba(124,58,237,.12);--tp:#f1f5f9;--ts:#94a3b8;--tm:#64748b;--bc:rgba(148,163,184,.12);--gb:rgba(17,24,39,.55)}
+.light{--bg:#f8fafc;--bg2:#f1f5f9;--bgc:rgba(255,255,255,.85);--bgs:#fff;--bgi:#e2e8f0;--bgh:rgba(124,58,237,.08);--tp:#0f172a;--ts:#475569;--tm:#94a3b8;--bc:rgba(15,23,42,.08);--gb:rgba(255,255,255,.6)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;line-height:1.6;color:var(--tp);background:var(--bg);overflow-x:hidden;transition:background .4s,color .4s}
+input,button,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+a{text-decoration:none;color:inherit}
+ul{list-style:none}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--cp);border-radius:8px}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+@keyframes su{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes si{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes sl{from{transform:translateX(30px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes lu{0%{transform:scale(1)}25%{transform:scale(1.15)}50%{transform:scale(1);box-shadow:0 0 20px var(--cp)}100%{transform:scale(1)}}
+.aFi{animation:fi .4s ease both}.aSu{animation:su .5s ease both}.aSi{animation:si .35s ease both}.aL{animation:lu .8s ease}
+/* ===== AUTH SCREENS ===== */
+#auth-screen{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .5s}
+#auth-screen.hidden{opacity:0;pointer-events:none;display:none}
+.auth-container{width:100%;max-width:440px;padding:2rem;position:relative;overflow:hidden}
+.auth-brand{text-align:center;margin-bottom:2rem}
+.auth-brand .logo{width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,var(--cp),var(--cs));display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:#fff;margin:0 auto 1rem}
+.auth-brand h1{font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,var(--cp),var(--cl));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.auth-brand p{color:var(--tm);margin-top:.5rem;font-size:.9rem}
+.auth-tabs{display:flex;gap:.25rem;padding:.3rem;background:var(--bg2);border-radius:var(--rm);margin-bottom:2rem}
+.auth-tab{flex:1;padding:.7rem;text-align:center;border-radius:var(--rm);font-weight:600;font-size:.9rem;transition:.3s;cursor:pointer;color:var(--tm)}
+.auth-tab.active{background:var(--cp);color:#fff}
+.auth-panel{display:none;animation:fi .4s ease both}
+.auth-panel.active{display:block}
+.form-group{margin-bottom:1rem}
+.form-label{display:block;font-size:.8rem;font-weight:600;color:var(--ts);margin-bottom:.4rem}
+.form-input{width:100%;padding:.75rem 1rem;border-radius:var(--rm);border:1.5px solid var(--bc);background:var(--bgi);color:var(--tp);transition:.15s;font-size:.9rem}
+.form-input:focus{outline:none;border-color:var(--cp);box-shadow:0 0 0 3px rgba(124,58,237,.15)}
+.form-input.err{border-color:var(--cr)}
+.form-error{font-size:.75rem;color:var(--cr);margin-top:.3rem;display:none}
+.form-error.show{display:block}
+.input-wrap{position:relative}
+.input-wrap .toggle-pw{position:absolute;right:.75rem;top:50%;transform:translateY(-50%);color:var(--tm);cursor:pointer;font-size:.9rem}
+.input-wrap .toggle-pw:hover{color:var(--cp)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.75rem 1.5rem;border-radius:var(--rm);font-weight:600;font-size:.9rem;transition:.3s;white-space:nowrap;border:none;cursor:pointer}
+.btn-primary{background:linear-gradient(135deg,var(--cp),var(--cs));color:#fff}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 20px rgba(124,58,237,.35)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-outline{background:transparent;border:2px solid var(--cp);color:var(--cp)}
+.btn-outline:hover{background:var(--bgh)}
+.btn-success{background:var(--cg);color:#fff}
+.btn-danger{background:var(--cr);color:#fff}
+.btn-ghost{background:transparent;color:var(--ts)}.btn-ghost:hover{background:var(--bgh);color:var(--cp)}
+.btn-sm{padding:.45rem .9rem;font-size:.8rem}
+.btn-lg{padding:.9rem 2rem;font-size:1rem}
+.btn-bk{width:100%}
+.auth-footer{text-align:center;margin-top:1.5rem;color:var(--tm);font-size:.85rem}
+.auth-footer a{color:var(--cp);font-weight:600;cursor:pointer}
+.auth-footer a:hover{text-decoration:underline}
+/* Avatar Upload */
+.avatar-upload{display:flex;flex-direction:column;align-items:center;gap:.75rem;margin-bottom:1.5rem}
+.avatar-preview{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--cp);cursor:pointer;transition:.3s}
+.avatar-preview:hover{transform:scale(1.05);box-shadow:0 0 15px rgba(124,58,237,.3)}
+.avatar-initials{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--cp),var(--cs));display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;color:#fff;border:3px solid var(--cp);cursor:pointer;transition:.3s}
+.avatar-initials:hover{transform:scale(1.05);box-shadow:0 0 15px rgba(124,58,237,.3)}
+.avatar-actions{display:flex;gap:.5rem}
+.avatar-actions .btn{font-size:.75rem;padding:.35rem .7rem}
+/* Toast */
+#toast-container{position:fixed;top:1.5rem;right:1.5rem;z-index:99999;display:flex;flex-direction:column;gap:.5rem}
+.toast{padding:.85rem 1.2rem;border-radius:var(--rm);font-size:.875rem;font-weight:500;display:flex;align-items:center;gap:.6rem;animation:sl .35s ease both;box-shadow:0 8px 30px rgba(0,0,0,.2);max-width:380px;border-left:4px solid;background:var(--bgs);color:var(--tp)}
+.toast.s{border-color:var(--cg)}.toast.e{border-color:var(--cr)}.toast.w{border-color:var(--cw)}.toast.i{border-color:var(--cp)}
+.toast.out{animation:fi .3s ease reverse;opacity:0}
+/* Loading */
+#ldr{position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;transition:opacity .5s}
+#ldr.fo{opacity:0;pointer-events:none}
+.ld{width:48px;height:48px;border:4px solid var(--bc);border-top-color:var(--cp);border-radius:50%;animation:spin .8s linear infinite}
+/* ===== APP ===== */
+#app{display:none;min-height:100vh}
+#app.show{display:flex}
+/* Sidebar */
+.sidebar{width:260px;background:var(--bg2);border-right:1px solid var(--bc);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200;transition:transform .3s}
+.sb-brand{display:flex;align-items:center;gap:.75rem;padding:1.5rem 1.25rem;border-bottom:1px solid var(--bc)}
+.sb-icon{width:42px;height:42px;border-radius:var(--rm);background:linear-gradient(135deg,var(--cp),var(--cs));display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:#fff;flex-shrink:0}
+.sb-brand h1{font-size:1.1rem;font-weight:800;background:linear-gradient(135deg,var(--cp),var(--cl));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sb-nav{flex:1;padding:1rem .75rem;display:flex;flex-direction:column;gap:.25rem;overflow-y:auto}
+.sb-item{display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;border-radius:var(--rm);font-size:.875rem;font-weight:500;color:var(--ts);transition:.15s;cursor:pointer}
+.sb-item i{width:20px;text-align:center}
+.sb-item:hover{background:var(--bgh);color:var(--cp)}
+.sb-item.a{background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(30,64,175,.1));color:var(--cp);font-weight:600}
+.sb-item.a::before{content:'';width:3px;height:24px;background:var(--cp);border-radius:4px;margin-left:-4px;margin-right:4px}
+.sb-footer{padding:1rem;border-top:1px solid var(--bc)}
+.sb-profile{display:flex;align-items:center;gap:.75rem;padding:.5rem;border-radius:var(--rm);cursor:pointer;transition:.15s}
+.sb-profile:hover{background:var(--bgh)}
+.sb-pinfo{flex:1;min-width:0}
+.sb-pname{font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-plevel{font-size:.7rem;color:var(--tm)}
+/* Main */
+.main{flex:1;margin-left:260px;min-height:100vh;display:flex;flex-direction:column}
+.topbar{height:64px;background:var(--gb);backdrop-filter:blur(12px);border-bottom:1px solid var(--bc);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;position:sticky;top:0;z-index:200}
+.tb-left{display:flex;align-items:center;gap:1rem}
+.tb-title{font-size:1.15rem;font-weight:700}
+.tb-right{display:flex;align-items:center;gap:.75rem}
+.menu-btn{display:none;width:40px;height:40px;border-radius:var(--rm);align-items:center;justify-content:center;font-size:1.2rem;color:var(--tp)}
+.sov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199}
+.sov.a{display:block}
+/* Pages */
+.page{display:none;padding:2rem;animation:fi .4s ease both}
+.page.a{display:block}
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem}
+.pt{font-size:1.5rem;font-weight:800}
+.psub{color:var(--tm);font-size:.85rem;margin-top:.2rem}
+/* Cards */
+.card{background:var(--bgc);border:1px solid var(--bc);border-radius:var(--rl);padding:1.5rem;transition:.3s}
+.card:hover{box-shadow:0 4px 12px rgba(0,0,0,.15)}
+/* Balance */
+.bh{background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(30,64,175,.08));border:1px solid var(--bc);border-radius:var(--rx);padding:2rem;position:relative;overflow:hidden}
+.bh::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cp),var(--cs),var(--cl))}
+.bl2{font-size:.8rem;color:var(--tm);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.ba{font-size:2.5rem;font-weight:900;background:linear-gradient(135deg,var(--cp),var(--cl));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:.25rem 0}
+.bsu{display:flex;gap:2rem;flex-wrap:wrap}
+.bsi{display:flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:600}
+/* Stats */
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem}
+.sc{display:flex;align-items:center;gap:1rem;padding:1.2rem;border-radius:var(--rl);background:var(--bgc);border:1px solid var(--bc);transition:.3s}
+.sc:hover{transform:translateY(-3px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.si{width:48px;height:48px;border-radius:var(--rm);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.sv{font-size:1.35rem;font-weight:800;line-height:1.2}
+.sl{font-size:.75rem;color:var(--tm);text-transform:uppercase;letter-spacing:.4px}
+/* Charts */
+.cg{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:1.5rem}
+.cc{background:var(--bgc);border:1px solid var(--bc);border-radius:var(--rl);padding:1.5rem}
+.ct2{font-size:1rem;font-weight:700;margin-bottom:1rem}
+.cw{position:relative;height:280px}
+.cw canvas{width:100%!important;height:100%!important}
+/* Transactions */
+.tl2{display:flex;flex-direction:column;gap:.5rem}
+.ti2{display:flex;align-items:center;gap:1rem;padding:.9rem 1rem;border-radius:var(--rm);background:var(--bgc);border:1px solid var(--bc);transition:.15s}
+.ti2:hover{background:var(--bgh);border-color:var(--cp)}
+.tic{width:42px;height:42px;border-radius:var(--rm);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.tin{flex:1;min-width:0}
+.tnm{font-weight:600;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tmt{font-size:.75rem;color:var(--tm)}
+.ta2{font-weight:700;font-size:.95rem;white-space:nowrap}
+.tac{display:flex;gap:.3rem}
+.tac .bi2{width:32px;height:32px;font-size:.8rem;border-radius:6px;color:var(--tm);display:flex;align-items:center;justify-content:center}
+.tac .bi2:hover{background:var(--bgh);color:var(--cp)}
+/* Progress */
+.prog{width:100%;height:10px;background:var(--bgi);border-radius:9999px;overflow:hidden}
+.prog-fill{height:100%;border-radius:9999px;background:linear-gradient(90deg,var(--cp),var(--cl));transition:width .6s ease}
+/* Avatar */
+.av{width:48px;height:48px;border-radius:50%;object-fit:cover;border:3px solid var(--cp);flex-shrink:0}
+.av-sm{width:36px;height:36px;border-width:2px}
+.av-xl{width:110px;height:110px;border-width:4px}
+.av-lg{width:80px;height:80px;border-width:3px}
+/* Modal */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:500;opacity:0;pointer-events:none;transition:.3s;padding:1rem}
+.mo.a{opacity:1;pointer-events:all}
+.md{background:var(--bgs);border:1px solid var(--bc);border-radius:var(--rx);padding:2rem;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;transform:scale(.9) translateY(20px);transition:.3s}
+.mo.a .md{transform:scale(1) translateY(0)}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.mt2{font-size:1.25rem;font-weight:700}
+.mc{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--bgh);color:var(--ts);transition:.15s}
+.mc:hover{background:var(--cr);color:#fff}
+.mbd{display:flex;flex-direction:column;gap:1rem}
+.mf2{display:flex;gap:.75rem;margin-top:1.5rem;justify-content:flex-end}
+/* Badge */
+.badge{display:inline-flex;align-items:center;padding:.2rem .7rem;border-radius:9999px;font-size:.7rem;font-weight:700}
+.bdp{background:rgba(124,58,237,.15);color:var(--cp)}
+.bds{background:rgba(16,185,129,.15);color:var(--cg)}
+.bdd{background:rgba(239,68,68,.15);color:var(--cr)}
+/* Empty state */
+.es{text-align:center;padding:3rem 1rem}
+.es .ei{font-size:3.5rem;margin-bottom:1rem;opacity:.5}
+.es h3{font-size:1.1rem;margin-bottom:.5rem}
+.es p{color:var(--tm);font-size:.9rem;margin-bottom:1.5rem}
+/* Grid */
+.ga{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem}
+/* Utils */
+.flx{display:flex}.fc{flex-direction:column}.aic{align-items:center}.jb{justify-content:space-between}.jc{justify-content:center}
+.gs{gap:.5rem}.gm{gap:1rem}.gl{gap:1.5rem}
+.tc2{text-align:center}
+.tm2{color:var(--tm)}.ts2{color:var(--ts)}.tg{color:var(--cg)}.td{color:var(--cr)}.tc{color:var(--cp)}
+.f6{font-weight:600}.f7{font-weight:700}.f8{font-weight:800}
+.txm{font-size:.875rem}.txs{font-size:.75rem}.txl{font-size:1.25rem}.txx{font-size:1.5rem}
+/* Bottom nav */
+.bn{display:none;position:fixed;bottom:0;left:0;right:0;height:64px;background:var(--gb);backdrop-filter:blur(16px);border-top:1px solid var(--bc);z-index:200;align-items:center;justify-content:space-around;padding:0 .5rem}
+.bni{display:flex;flex-direction:column;align-items:center;gap:.15rem;padding:.4rem .6rem;border-radius:6px;color:var(--tm);font-size:.65rem;font-weight:600;transition:.15s}
+.bni i{font-size:1.15rem}.bni.a{color:var(--cp)}
+/* Profile */
+.pf-cover{background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(30,64,175,.1));border-radius:var(--rx);padding:2rem;margin-bottom:1.5rem;position:relative;overflow:hidden}
+.pf-cover::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cp),var(--cs),var(--cl))}
+.pf-avatar-wrap{position:relative;display:inline-block}
+.pf-avatar-edit{position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:var(--cp);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;cursor:pointer;border:2px solid var(--bg2)}
+.pf-avatar-edit:hover{background:var(--cs)}
+/* Responsive */
+@media(max-width:1024px){
+.sidebar{transform:translateX(-100%)}.sidebar.o{transform:translateX(0)}.main{margin-left:0}.menu-btn{display:flex}
+.ba{font-size:2rem}.cg{grid-template-columns:1fr}.g2{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+.page{padding:1rem}.topbar{padding:0 1rem;height:56px}.tb-title{font-size:1rem}
+.bh{padding:1.25rem}.ba{font-size:1.65rem}.bsu{gap:1rem}
+.sg{grid-template-columns:repeat(2,1fr)}.ga{grid-template-columns:1fr}
+.ph{flex-direction:column;align-items:flex-start}
+.md{padding:1.25rem;margin:.5rem;max-height:85vh}
+.bn{display:flex}.main{padding-bottom:72px}
+#toast-container{top:auto;bottom:5rem;right:.75rem;left:.75rem}
+.toast{max-width:100%}.sc{padding:1rem}.sv{font-size:1.1rem}
+.tac{display:none}.auth-container{padding:1.5rem}
+}
+</style>
+</head>
+<body class="dark">
+
+<!-- Loading -->
+<div id="ldr"><div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#1e40af);display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:#fff">💰</div><div class="ld"></div><p style="color:var(--tm);font-size:.875rem">Carregando...</p></div>
+
+<!-- Toast -->
+<div id="toast-container"></div>
+
+<!-- Auth Screen -->
+<div id="auth-screen" class="hidden">
+<div class="auth-container aSi">
+<div class="auth-brand">
+<div class="logo">💰</div>
+<h1>Ephyra Finance</h1>
+<p id="auth-subtitle">Organize suas finanças de forma inteligente</p>
+</div>
+<div class="auth-tabs">
+<div class="auth-tab active" data-tab="login" onclick="Auth.switchTab('login')">Entrar</div>
+<div class="auth-tab" data-tab="register" onclick="Auth.switchTab('register')">Criar Conta</div>
+</div>
+<!-- Login Panel -->
+<div class="auth-panel active" id="panel-login">
+<form id="login-form" onsubmit="Auth.handleLogin(event)">
+<div class="form-group">
+<label class="form-label">E-mail</label>
+<input type="email" id="l-email" class="form-input" placeholder="seu@email.com" required>
+<div class="form-error" id="l-email-err"></div>
+</div>
+<div class="form-group">
+<label class="form-label">Senha</label>
+<div class="input-wrap">
+<input type="password" id="l-pw" class="form-input" placeholder="Sua senha" required>
+<i class="fas fa-eye toggle-pw" onclick="Auth.togglePw('l-pw',this)"></i>
+</div>
+<div class="form-error" id="l-pw-err"></div>
+</div>
+<div class="form-group" style="display:flex;align-items:center;gap:.5rem">
+<input type="checkbox" id="l-remember" style="accent-color:var(--cp);width:16px;height:16px">
+<label for="l-remember" style="font-size:.85rem;color:var(--ts);cursor:pointer">Lembrar usuário</label>
+</div>
+<button type="submit" class="btn btn-primary btn-lg btn-bk" id="l-submit">
+<i class="fas fa-sign-in-alt"></i> Entrar
+</button>
+</form>
+<div class="auth-footer">
+Não tem conta? <a onclick="Auth.switchTab('register')">Criar conta</a>
+</div>
+</div>
+<!-- Register Panel -->
+<div class="auth-panel" id="panel-register">
+<form id="register-form" onsubmit="Auth.handleRegister(event)">
+<div class="avatar-upload">
+<div id="reg-avatar-preview" class="avatar-initials" onclick="document.getElementById('reg-avatar-input').click()">
+<span id="reg-avatar-text">?</span>
+</div>
+<img id="reg-avatar-img" class="avatar-preview" style="display:none" onclick="document.getElementById('reg-avatar-input').click()">
+<div class="avatar-actions">
+<button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('reg-avatar-input').click()"><i class="fas fa-camera"></i> Foto</button>
+<button type="button" class="btn btn-ghost btn-sm" id="reg-avatar-remove" style="display:none" onclick="Auth.removeAvatar('reg')"><i class="fas fa-times"></i> Remover</button>
+</div>
+<input type="file" id="reg-avatar-input" accept="image/jpeg,image/jpg,image/png,image/webp" style="display:none" onchange="Auth.handleAvatarUpload(this,'reg')">
+</div>
+<div class="form-group">
+<label class="form-label">Nome completo *</label>
+<input type="text" id="r-name" class="form-input" placeholder="Seu nome completo" required>
+<div class="form-error" id="r-name-err"></div>
+</div>
+<div class="form-group">
+<label class="form-label">E-mail *</label>
+<input type="email" id="r-email" class="form-input" placeholder="seu@email.com" required>
+<div class="form-error" id="r-email-err"></div>
+</div>
+<div class="form-group">
+<label class="form-label">Senha *</label>
+<div class="input-wrap">
+<input type="password" id="r-pw" class="form-input" placeholder="Mínimo 8 caracteres" required>
+<i class="fas fa-eye toggle-pw" onclick="Auth.togglePw('r-pw',this)"></i>
+</div>
+<div class="form-error" id="r-pw-err"></div>
+</div>
+<div class="form-group">
+<label class="form-label">Confirmar senha *</label>
+<div class="input-wrap">
+<input type="password" id="r-pw2" class="form-input" placeholder="Repita a senha" required>
+<i class="fas fa-eye toggle-pw" onclick="Auth.togglePw('r-pw2',this)"></i>
+</div>
+<div class="form-error" id="r-pw2-err"></div>
+</div>
+<div class="form-group">
+<label class="form-label">Salário mensal (opcional)</label>
+<input type="number" id="r-salario" class="form-input" step="0.01" placeholder="0.00">
+</div>
+<button type="submit" class="btn btn-primary btn-lg btn-bk" id="r-submit">
+<i class="fas fa-rocket"></i> Criar Conta
+</button>
+</form>
+<div class="auth-footer">
+Já tem conta? <a onclick="Auth.switchTab('login')">Entrar</a>
+</div>
+</div>
+</div>
+</div>
+
+<!-- App Shell -->
+<div id="app">
+<div class="sov" onclick="App.tsb(false)"></div>
+<aside class="sidebar">
+<div class="sb-brand"><div class="sb-icon">💰</div><h1>Ephyra Finance</h1></div>
+<nav class="sb-nav">
+<div class="sb-item a" data-nav="dashboard" onclick="App.nav('dashboard')"><i class="fas fa-th-large"></i><span>Dashboard</span></div>
+<div class="sb-item" data-nav="transacoes" onclick="App.nav('transacoes')"><i class="fas fa-exchange-alt"></i><span>Transações</span></div>
+<div class="sb-item" data-nav="metas" onclick="App.nav('metas')"><i class="fas fa-bullseye"></i><span>Metas</span></div>
+<div class="sb-item" data-nav="conquistas" onclick="App.nav('conquistas')"><i class="fas fa-trophy"></i><span>Conquistas</span></div>
+<div class="sb-item" data-nav="perfil" onclick="App.nav('perfil')"><i class="fas fa-user"></i><span>Perfil</span></div>
+<div class="sb-item" data-nav="configuracoes" onclick="App.nav('configuracoes')"><i class="fas fa-cog"></i><span>Configurações</span></div>
+</nav>
+<div class="sb-footer">
+<div class="sb-profile" onclick="App.nav('perfil')">
+<div id="sb-avatar-wrap"></div>
+<div class="sb-pinfo"><div class="sb-pname" id="sb-name">Usuário</div><div class="sb-plevel" id="sb-level">Nível 1</div></div>
+<i class="fas fa-chevron-right" style="color:var(--tm);font-size:.7rem"></i>
+</div>
+</div>
+</aside>
+<main class="main">
+<header class="topbar">
+<div class="tb-left">
+<button class="menu-btn" onclick="App.tsb()"><i class="fas fa-bars"></i></button>
+<h2 class="tb-title" id="tb-title">Dashboard</h2>
+</div>
+<div class="tb-right">
+<button class="btn btn-success btn-sm" onclick="App.showTxModal('receita')"><i class="fas fa-plus"></i> Receita</button>
+<button class="btn btn-danger btn-sm" onclick="App.showTxModal('despesa')"><i class="fas fa-minus"></i> Despesa</button>
+</div>
+</header>
+<div id="pg-dashboard" class="page a"></div>
+<div id="pg-transacoes" class="page"></div>
+<div id="pg-metas" class="page"></div>
+<div id="pg-conquistas" class="page"></div>
+<div id="pg-perfil" class="page"></div>
+<div id="pg-configuracoes" class="page"></div>
+</main>
+<nav class="bn">
+<div class="bni a" onclick="App.nav('dashboard')"><i class="fas fa-th-large"></i><span>Início</span></div>
+<div class="bni" onclick="App.nav('transacoes')"><i class="fas fa-exchange-alt"></i><span>Trans.</span></div>
+<div class="bni" onclick="App.nav('metas')"><i class="fas fa-bullseye"></i><span>Metas</span></div>
+<div class="bni" onclick="App.nav('conquistas')"><i class="fas fa-trophy"></i><span>Troféus</span></div>
+<div class="bni" onclick="App.nav('perfil')"><i class="fas fa-user"></i><span>Perfil</span></div>
+</nav>
+</div>
+
+<!-- Global Modal -->
+<div id="modal" class="mo">
+<div class="md">
+<div class="mh"><h3 class="mt2" id="m-title"></h3><button class="mc" onclick="App.cMo()"><i class="fas fa-times"></i></button></div>
+<div class="mbd" id="m-body"></div>
+</div>
+</div>
+
+<!-- Photo Viewer Modal -->
+<div id="photo-viewer" class="mo" onclick="this.classList.remove('a')">
+<div style="text-align:center">
+<img id="pv-img" style="max-width:90vw;max-height:80vh;border-radius:var(--rx);border:3px solid var(--cp)" onclick="event.stopPropagation()">
+<div style="margin-top:1rem;display:flex;justify-content:center;gap:1rem">
+<button class="btn btn-outline btn-sm" onclick="document.getElementById('photo-viewer').classList.remove('a')">Fechar</button>
+</div>
+</div>
+</div>
+
+<script>
+// =========================== UTILITIES ===========================
+const U={
+id:()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8),
+money:v=>(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}),
+date:d=>{try{return new Date(d).toLocaleDateString('pt-BR')}catch(e){return''}},
+dI:d=>{try{return new Date(d).toISOString().split('T')[0]}catch(e){return new Date().toISOString().split('T')[0]}},
+pct:(v,t)=>t===0?0:Math.min(((v/t)*100),100),
+qs:s=>document.querySelector(s),
+qsa:s=>document.querySelectorAll(s),
+on:(el,ev,fn)=>el&&el.addEventListener(ev,fn),
+sameDay:(a,b)=>{try{return new Date(a).toDateString()===new Date(b).toDateString()}catch(e){return false}},
+trunc:(s,n=30)=>s&&s.length>n?s.slice(0,n)+'…':s||'',
+getInitials:n=>n?n.trim().split(' ').filter(Boolean).map(w=>w[0]).join('').toUpperCase().slice(0,2):'?'};
+
+// =========================== TOAST ===========================
+const Toast={
+c:null,
+init(){this.c=U.qs('#toast-container')},
+show(m,t='i',d=4000){
+if(!this.c)this.init();
+const ic={s:'fa-check-circle',e:'fa-times-circle',w:'fa-exclamation-triangle',i:'fa-info-circle'};
+const e=document.createElement('div');e.className=`toast ${t}`;e.innerHTML=`<i class="fas ${ic[t]||ic.i}"></i><span>${m}</span>`;
+this.c.appendChild(e);
+setTimeout(()=>{e.classList.add('out');setTimeout(()=>e.remove(),300)},d)},
+s(m){this.show(m,'s')},e(m){this.show(m,'e')},w(m){this.show(m,'w')},i(m){this.show(m,'i')}};
+
+// =========================== AUTH SYSTEM ===========================
+const Auth={
+KEY_USERS:'ephyra_users',
+KEY_SESSION:'ephyra_session',
+
+// Get all users
+getUsers(){try{return JSON.parse(localStorage.getItem(this.KEY_USERS))||{}}catch(e){return{}}},
+saveUsers(users){localStorage.setItem(this.KEY_USERS,JSON.stringify(users))},
+getSession(){try{return JSON.parse(localStorage.getItem(this.KEY_SESSION))}catch(e){return null}},
+saveSession(session){localStorage.setItem(this.KEY_SESSION,JSON.stringify(session))},
+clearSession(){localStorage.removeItem(this.KEY_SESSION)},
+
+// Get user data key
+uk(email){return 'ephyra_data_'+email.replace(/[^a-zA-Z0-9]/g,'_')},
+
+// Switch tab
+switchTab(tab){
+U.qsa('.auth-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+U.qs('#panel-login').classList.toggle('active',tab==='login');
+U.qs('#panel-register').classList.toggle('active',tab==='register');
+U.qs('#auth-subtitle').textContent=tab==='login'?'Entre na sua conta':'Crie sua conta gratuita';
+this.clearErrors()
+},
+
+clearErrors(){U.qsa('.form-error').forEach(e=>{e.classList.remove('show');e.textContent=''});U.qsa('.form-input').forEach(i=>i.classList.remove('err'))},
+
+showErr(id,msg){
+const el=U.qs('#'+id);if(el){el.textContent=msg;el.classList.add('show')}
+const input=U.qs(id.replace('-err',''));if(input)input.classList.add('err')},
+
+// Toggle password visibility
+togglePw(id,icon){
+const inp=U.qs('#'+id);
+if(inp.type==='password'){inp.type='text';icon.classList.replace('fa-eye','fa-eye-slash')}
+else{inp.type='password';icon.classList.replace('fa-eye-slash','fa-eye')}},
+
+// Avatar handling
+handleAvatarUpload(input,prefix){
+const file=input.files[0];if(!file)return;
+// Validate format
+const validTypes=['image/jpeg','image/jpg','image/png','image/webp'];
+if(!validTypes.includes(file.type)){Toast.e('Formato inválido. Use JPG, PNG ou WEBP.');input.value='';return}
+// Validate size (5MB)
+if(file.size>5*1024*1024){Toast.e('Imagem muito grande. Máximo: 5MB.');input.value='';return}
+const reader=new FileReader();
+reader.onload=(ev)=>{
+const img=new Image();
+img.onload=()=>{
+// Resize to 256x256
+const canvas=document.createElement('canvas');
+const size=256;canvas.width=size;canvas.height=size;
+const ctx=canvas.getContext('2d');
+const minDim=Math.min(img.width,img.height);
+const sx=(img.width-minDim)/2,sy=(img.height-minDim)/2;
+ctx.drawImage(img,sx,sy,minDim,minDim,0,0,size,size);
+// Compress to JPEG 0.7
+const dataUrl=canvas.toDataURL('image/jpeg',0.7);
+const preview=U.qs(`#${prefix}-avatar-img`);
+const initials=U.qs(`#${prefix}-avatar-text`);
+const parent=initials.parentElement;
+preview.src=dataUrl;preview.style.display='block';initials.style.display='none';
+U.qs(`#${prefix}-avatar-remove`).style.display='inline-flex';
+input.dataset.img=dataUrl;
+};
+img.src=ev.target.result;
+};
+reader.readAsDataURL(file);
+},
+
+removeAvatar(prefix){
+const preview=U.qs(`#${prefix}-avatar-img`);
+const initials=U.qs(`#${prefix}-avatar-text`);
+preview.style.display='none';preview.src='';initials.style.display='flex';
+U.qs(`#${prefix}-avatar-remove`).style.display='none';
+U.qs(`#${prefix}-avatar-input`).value='';
+U.qs(`#${prefix}-avatar-input`).dataset.img='';
+},
+
+getAvatarHtml(user,size='av'){
+if(user&&user.foto){
+return`<img src="${user.foto}" class="${size}" alt="" style="cursor:pointer" onclick="App.viewPhoto('${user.foto.replace(/'/g,"\\'")}')">`;
+}
+const ini=user?U.getInitials(user.nome):'?';
+const sz=size.includes('xl')?'110px':size.includes('lg')?'80px':size.includes('sm')?'36px':'48px';
+const fs=size.includes('xl')?'2.5rem':size.includes('lg')?'1.8rem':size.includes('sm')?'.75rem':'1rem';
+return`<div class="${size}" style="width:${sz};height:${sz};border-radius:50%;background:linear-gradient(135deg,var(--cp),var(--cs));display:flex;align-items:center;justify-content:center;font-size:${fs};font-weight:800;color:#fff;border:3px solid var(--cp);flex-shrink:0;cursor:pointer">${ini}</div>`;
+},
+
+// Validate email format
+validEmail(e){return/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)},
+
+// Handle Registration
+handleRegister(e){
+e.preventDefault();this.clearErrors();
+const nome=U.qs('#r-name').value.trim();
+const email=U.qs('#r-email').value.trim().toLowerCase();
+const pw=U.qs('#r-pw').value;
+const pw2=U.qs('#r-pw2').value;
+const salario=parseFloat(U.qs('#r-salario').value)||0;
+const fotoInput=U.qs('#reg-avatar-input');
+const foto=fotoInput?.dataset.img||'';
+
+let valid=true;
+
+// Validate name
+if(!nome){this.showErr('r-name-err','Nome é obrigatório');valid=false}
+else if(nome.length<2){this.showErr('r-name-err','Nome muito curto');valid=false}
+
+// Validate email
+if(!email){this.showErr('r-email-err','E-mail é obrigatório');valid=false}
+else if(!this.validEmail(email)){this.showErr('r-email-err','E-mail inválido');valid=false}
+
+// Validate password
+if(!pw){this.showErr('r-pw-err','Senha é obrigatória');valid=false}
+else if(pw.length<8){this.showErr('r-pw-err','Senha precisa de no mínimo 8 caracteres');valid=false}
+
+// Validate confirm password
+if(!pw2){this.showErr('r-pw2-err','Confirme a senha');valid=false}
+else if(pw!==pw2){this.showErr('r-pw2-err','As senhas não coincidem');valid=false}
+
+if(!valid)return;
+
+// Check duplicate email
+const users=this.getUsers();
+if(users[email]){this.showErr('r-email-err','Este e-mail já está cadastrado');return}
+
+// Create user
+const user={
+nome,email,senha:pw,foto,
+salario,
+dataCadastro:new Date().toISOString()
+};
+users[email]=user;
+this.saveUsers(users);
+
+// Create user data
+const data=this.createUserData(user,salario);
+localStorage.setItem(this.uk(email),JSON.stringify(data));
+
+// Auto login
+this.saveSession({email,remember:U.qs('#l-remember').checked});
+
+Toast.s('🎉 Conta criada com sucesso!');
+this.enterApp(user,data);
+},
+
+createUserData(user,salario){
+const data={
+saldo:0,receitas:[],despesas:[],metas:[],historico:[],conquistas:[],
+categorias:[
+{id:'salario',nome:'Salário',icone:'fa-briefcase',tipo:'receita',cor:'#22c55e'},
+{id:'freelance',nome:'Freelance',icone:'fa-laptop-code',tipo:'receita',cor:'#14b8a6'},
+{id:'investimentos',nome:'Investimentos',icone:'fa-chart-line',tipo:'receita',cor:'#3b82f6'},
+{id:'presente',nome:'Presente',icone:'fa-gift',tipo:'receita',cor:'#ec4899'},
+{id:'outros_rec',nome:'Outros',icone:'fa-plus-circle',tipo:'receita',cor:'#8b5cf6'},
+{id:'alimentacao',nome:'Alimentação',icone:'fa-utensils',tipo:'despesa',cor:'#f97316'},
+{id:'transporte',nome:'Transporte',icone:'fa-car',tipo:'despesa',cor:'#3b82f6'},
+{id:'moradia',nome:'Moradia',icone:'fa-home',tipo:'despesa',cor:'#10b981'},
+{id:'saude',nome:'Saúde',icone:'fa-heartbeat',tipo:'despesa',cor:'#ef4444'},
+{id:'educacao',nome:'Educação',icone:'fa-graduation-cap',tipo:'despesa',cor:'#8b5cf6'},
+{id:'lazer',nome:'Lazer',icone:'fa-gamepad',tipo:'despesa',cor:'#f43f5e'},
+{id:'compras',nome:'Compras',icone:'fa-shopping-bag',tipo:'despesa',cor:'#f59e0b'},
+{id:'contas',nome:'Contas',icone:'fa-file-invoice-dollar',tipo:'despesa',cor:'#6366f1'},
+{id:'outros_desp',nome:'Outros',icone:'fa-ellipsis-h',tipo:'despesa',cor:'#64748b'}
+],
+xp:0,nivel:1,
+config:{tema:'dark',diasUsando:1,ultimoLogin:new Date().toISOString()},
+user:{nome:user.nome,email:user.email,foto:user.foto,salario:user.salario,dataCadastro:user.dataCadastro}
+};
+
+// If salary provided, add as first income
+if(salario>0){
+const tx={id:U.id(),tipo:'receita',nome:'Salário',categoria:'salario',valor:salario,data:new Date().toISOString(),descricao:'Salário mensal',dataCriacao:new Date().toISOString()};
+data.saldo+=salario;data.receitas.push(tx);data.historico.push(tx);
+}
+
+return data;
+},
+
+// Handle Login
+handleLogin(e){
+e.preventDefault();this.clearErrors();
+const email=U.qs('#l-email').value.trim().toLowerCase();
+const pw=U.qs('#l-pw').value;
+let valid=true;
+
+if(!email){this.showErr('l-email-err','E-mail é obrigatório');valid=false}
+if(!pw){this.showErr('l-pw-err','Senha é obrigatória');valid=false}
+if(!valid)return;
+
+const users=this.getUsers();
+const user=users[email];
+if(!user){this.showErr('l-email-err','E-mail não encontrado');return}
+if(user.senha!==pw){this.showErr('l-pw-err','Senha incorreta');return}
+
+// Load user data
+let data=localStorage.getItem(this.uk(email));
+if(data)data=JSON.parse(data);
+else{data=this.createUserData(user,0);localStorage.setItem(this.uk(email),JSON.stringify(data))}
+
+// Update session
+this.saveSession({email,remember:U.qs('#l-remember').checked});
+this.checkDailyLogin(data);
+
+Toast.s(`Bem-vindo, ${user.nome}!`);
+this.enterApp(user,data);
+},
+
+checkDailyLogin(data){
+if(!data.config)data.config={diasUsando:1,ultimoLogin:new Date().toISOString()};
+if(!U.sameDay(data.config.ultimoLogin,new Date())){
+data.config.diasUsando=(data.config.diasUsando||0)+1;
+data.config.ultimoLogin=new Date().toISOString();
+}
+},
+
+// Enter app after login/register
+enterApp(user,data){
+U.qs('#auth-screen').classList.add('hidden');
+U.qs('#app').classList.add('show');
+App.user=user;App.data=data;
+App.processLogin();App.setupNav();App.appTheme();App.updProf();App.nav('dashboard');
+},
+
+// Logout
+logout(){
+this.clearSession();
+App.data=null;App.user=null;
+U.qs('#app').classList.remove('show');
+U.qs('#auth-screen').classList.remove('hidden');
+// Clear form
+U.qs('#login-form')?.reset();U.qs('#register-form')?.reset();
+this.switchTab('login');this.clearErrors();
+Toast.i('Você saiu da sua conta');
+},
+
+// Auto login on page load
+autoLogin(){
+const session=this.getSession();
+if(!session)return false;
+const users=this.getUsers();
+const user=users[session.email];
+if(!user){this.clearSession();return false}
+
+let data=localStorage.getItem(this.uk(session.email));
+if(data)data=JSON.parse(data);
+else{data=this.createUserData(user,0);localStorage.setItem(this.uk(session.email),JSON.stringify(data))}
+
+this.checkDailyLogin(data);
+this.saveSession(session);
+localStorage.setItem(this.uk(session.email),JSON.stringify(data));
+
+U.qs('#auth-screen').classList.add('hidden');
+U.qs('#app').classList.add('show');
+App.user=user;App.data=data;
+App.setupNav();App.appTheme();App.updProf();App.nav('dashboard');
+return true;
+},
+
+// Update saved user info
+updateUser(updated){
+const users=this.getUsers();
+if(users[this.user.email]){
+Object.assign(users[this.user.email],updated);
+this.saveUsers(users);
+this.user={...this.user,...updated};
+}
+}
+};
+
+// =========================== MAIN APP ===========================
+const App={
+data:null,user:null,cp:'dashboard',
+charts:{},
+
+init(){
+Toast.init();
+// Try auto login
+if(!Auth.autoLogin()){
+U.qs('#auth-screen').classList.remove('hidden');
+}
+// Remove loading
+setTimeout(()=>{const l=U.qs('#ldr');l.classList.add('fo');setTimeout(()=>l.remove(),500)},400);
+},
+
+processLogin(){
+if(!this.data.config)this.data.config={diasUsando:1,ultimoLogin:new Date().toISOString()};
+if(!U.sameDay(this.data.config.ultimoLogin,new Date())){
+this.data.config.diasUsando=(this.data.config.diasUsando||0)+1;
+this.data.config.ultimoLogin=new Date().toISOString();
+this.saveData();
+}
+this.checkAchievements();
+},
+
+saveData(){
+if(!this.user)return;
+localStorage.setItem(Auth.uk(this.user.email),JSON.stringify(this.data));
+},
+
+appTheme(){
+const dk=this.data?.config?.tema!=='light';
+document.body.classList.toggle('light',!dk);document.body.classList.toggle('dark',dk);
+},
+
+toggleTheme(){
+const l=document.body.classList.toggle('light');document.body.classList.toggle('dark',!l);
+if(this.data){this.data.config.tema=l?'light':'dark';this.saveData()}
+Toast.i(l?'☀️ Modo claro':'🌙 Modo escuro');
+if(this.cp==='dashboard')setTimeout(()=>this.updCharts(),200);
+},
+
+setupNav(){
+U.qsa('[data-nav]').forEach(el=>U.on(el,'click',()=>this.nav(el.dataset.nav)));
+},
+
+tsb(force){
+const sb=U.qs('.sidebar');const ov=U.qs('.sov');
+const open=force!==undefined?force:!sb.classList.contains('o');
+sb.classList.toggle('o',open);ov.classList.toggle('a',open);
+},
+
+updProf(){
+if(!this.user)return;
+U.qs('#sb-name').textContent=this.user.nome;
+U.qs('#sb-level').textContent=`Nível ${this.data.nivel||1} • ${this.data.xp||0} XP`;
+const wrap=U.qs('#sb-avatar-wrap');
+if(wrap)wrap.innerHTML=Auth.getAvatarHtml(this.user,'av-sm');
+},
+
+viewPhoto(src){U.qs('#pv-img').src=src;U.qs('#photo-viewer').classList.add('a')},
+
+// Navigation
+nav(pg){
+this.cp=pg;
+U.qsa('.page').forEach(p=>p.classList.remove('a'));
+const t=U.qs(`#pg-${pg}`);if(t)t.classList.add('a');
+U.qsa('.sb-item').forEach(el=>el.classList.toggle('a',el.dataset.nav===pg));
+U.qsa('.bni').forEach(el=>el.classList.toggle('a',el.textContent.trim().toLowerCase().includes(pg.slice(0,4))));
+const titles={dashboard:'Dashboard',transacoes:'Transações',metas:'Metas',conquistas:'Conquistas',perfil:'Perfil',configuracoes:'Configurações'};
+U.qs('#tb-title').textContent=titles[pg]||'';
+
+switch(pg){
+case'dashboard':this.rDash();break;
+case'transacoes':this.rTx();break;
+case'metas':this.rMt();break;
+case'conquistas':this.rCQ();break;
+case'perfil':this.rPerfil();break;
+case'configuracoes':this.rConfig();break;
+}
+this.tsb(false);
+},
+
+// Dashboard
+rDash(){
+const d=this.data;const t=this.totals();const rec=this.filterTx().slice(0,6);const ms=this.mtStats();
+U.qs('#pg-dashboard').innerHTML=`
+<div class="ph"><div><h2 class="pt">Dashboard</h2><p class="psub">Visão geral das suas finanças</p></div></div>
+<div class="bh aSu"><p class="bl2">Saldo Disponível</p><h2 class="ba">${U.money(d.saldo)}</h2>
+<div class="bsu"><span class="bsi tg"><i class="fas fa-arrow-up"></i> ${U.money(t.rec)}</span><span class="bsi td"><i class="fas fa-arrow-down"></i> ${U.money(t.des)}</span><span class="bsi tc"><i class="fas fa-piggy-bank"></i> ${U.money(t.gua)}</span></div></div>
+<div style="margin-top:1rem">${this.xpBar()}</div>
+<div class="sg aSu" style="margin-top:1.5rem">
+<div class="sc"><div class="si" style="background:rgba(16,185,129,.12);color:#10b981"><i class="fas fa-arrow-up"></i></div><div><div class="sv tg">${U.money(t.rec)}</div><div class="sl">Receitas</div></div></div>
+<div class="sc"><div class="si" style="background:rgba(239,68,68,.12);color:#ef4444"><i class="fas fa-arrow-down"></i></div><div><div class="sv td">${U.money(t.des)}</div><div class="sl">Despesas</div></div></div>
+<div class="sc"><div class="si" style="background:rgba(59,130,246,.12);color:#3b82f6"><i class="fas fa-chart-line"></i></div><div><div class="sv">${U.money(t.rec-t.des)}</div><div class="sl">Economia</div></div></div>
+<div class="sc"><div class="si" style="background:rgba(124,58,237,.12);color:#7c3aed"><i class="fas fa-bullseye"></i></div><div><div class="sv">${ms.total}</div><div class="sl">Metas</div></div></div>
+<div class="sc"><div class="si" style="background:rgba(245,158,11,.12);color:#f59e0b"><i class="fas fa-trophy"></i></div><div><div class="sv">${(d.conquistas||[]).length}</div><div class="sl">Conquistas</div></div></div>
+<div class="sc"><div class="si" style="background:rgba(236,72,153,.12);color:#ec4899"><i class="fas fa-exchange-alt"></i></div><div><div class="sv">${(d.historico||[]).length}</div><div class="sl">Transações</div></div></div>
+</div>
+<div class="cg" style="margin-top:1.5rem">
+<div class="cc aFi"><h3 class="ct2"><i class="fas fa-chart-pie"></i> Receitas vs Despesas</h3><div class="cw"><canvas id="c-pie"></canvas></div></div>
+<div class="cc aFi"><h3 class="ct2"><i class="fas fa-chart-line"></i> Evolução Mensal</h3><div class="cw"><canvas id="c-mon"></canvas></div></div>
+<div class="cc aFi"><h3 class="ct2"><i class="fas fa-chart-bar"></i> Despesas por Categoria</h3><div class="cw"><canvas id="c-cat"></canvas></div></div>
+</div>
+<div class="card" style="margin-top:1.5rem"><div class="flx jb aic" style="margin-bottom:1rem"><h3 class="f7">Últimas Movimentações</h3><button class="btn btn-ghost btn-sm" onclick="App.nav('transacoes')">Ver todas <i class="fas fa-arrow-right"></i></button></div>
+<div class="tl2">${rec.length?rec.map(tx=>this.txItem(tx)).join(''):'<div class="es"><div class="ei">📊</div><h3>Sem movimentações</h3><p>Adicione receitas e despesas</p></div>'}</div></div>`;
+setTimeout(()=>this.updCharts(),100);
+},
+
+xpBar(){
+const d=this.data;const n=d.nivel||1;const xp=d.xp||0;const need=n*100;const pct=U.pct(xp,need);
+return`<div class="xpbc"><div class="flx jb aic gs" style="margin-bottom:.3rem"><span class="badge bdp"><i class="fas fa-star"></i> Nível ${n}</span><span class="txs tm">${xp} / ${need} XP</span></div><div class="prog"><div class="prog-fill" style="width:${pct}%"></div></div></div>`;
+},
+
+totals(){return{rec:this.data.receitas.reduce((s,t)=>s+t.valor,0),des:this.data.despesas.reduce((s,t)=>s+t.valor,0),gua:this.data.metas.reduce((s,m)=>s+(m.valorGuardado||0),0)}},
+
+filterTx(f={}){
+let l=[...(this.data.historico||[])];
+if(f.tipo&&f.tipo!=='todos')l=l.filter(t=>t.tipo===f.tipo);
+if(f.categoria)l=l.filter(t=>t.categoria===f.categoria);
+if(f.search){const s=f.search.toLowerCase();l=l.filter(t=>t.nome.toLowerCase().includes(s)||(t.descricao||'').toLowerCase().includes(s))}
+l.sort((a,b)=>new Date(b.data)-new Date(a.data));return l;
+},
+
+txItem(tx){
+const cats=this.data.categorias||[];const cat=cats.find(c=>c.id===tx.categoria)||{icone:'fa-circle',cor:'#64748b',nome:'Outros'};
+const r=tx.tipo==='receita';
+return`<div class="ti2"><div class="tic" style="background:${cat.cor}22;color:${cat.cor}"><i class="fas ${cat.icone}"></i></div>
+<div class="tin"><div class="tnm">${U.trunc(tx.nome,35)}</div><div class="tmt">${cat.nome} • ${U.date(tx.data)}</div></div>
+<div class="ta2 ${r?'tg':'td'}">${r?'+':'-'} ${U.money(tx.valor)}</div>
+<div class="tac"><div class="bi2" onclick="App.showTxModal(null,'${tx.id}')"><i class="fas fa-pen"></i></div><div class="bi2" onclick="App.confirmDelTx('${tx.id}')"><i class="fas fa-trash"></i></div></div></div>`;
+},
+
+// Transactions page
+rTx(){
+const txs=this.filterTx();const cats=this.data.categorias||[];
+U.qs('#pg-transacoes').innerHTML=`
+<div class="ph"><div><h2 class="pt">Transações</h2><p class="psub">Gerencie receitas e despesas</p></div>
+<div class="flx gs"><button class="btn btn-success btn-sm" onclick="App.showTxModal('receita')"><i class="fas fa-plus"></i> Receita</button><button class="btn btn-danger btn-sm" onclick="App.showTxModal('despesa')"><i class="fas fa-minus"></i> Despesa</button></div></div>
+<div class="card" style="margin-bottom:1rem"><div class="flx gs aic" style="flex-wrap:wrap">
+<input class="form-input" id="txs" placeholder="Pesquisar..." style="max-width:220px" oninput="App.fTx()">
+<select class="form-input" id="txft" style="max-width:140px" onchange="App.fTx()"><option value="todos">Todos</option><option value="receita">Receitas</option><option value="despesa">Despesas</option></select>
+<select class="form-input" id="txfc" style="max-width:160px" onchange="App.fTx()"><option value="">Todas categorias</option>${cats.filter(c=>c.tipo==='despesa').map(c=>`<option value="${c.id}">${c.nome}</option>`).join('')}</select>
+</div></div>
+<div id="txl" class="tl2">${txs.length?txs.map(tx=>this.txItem(tx)).join(''):'<div class="es"><div class="ei">💰</div><h3>Nenhuma transação</h3><p>Adicione receitas ou despesas</p></div>'}</div>`;
+},
+
+fTx(){
+const s=U.qs('#txs')?.value||'',t=U.qs('#txft')?.value||'todos',c=U.qs('#txfc')?.value||'';
+const txs=this.filterTx({search:s,tipo:t,categoria:c||undefined});
+U.qs('#txl').innerHTML=txs.length?txs.map(tx=>this.txItem(tx)).join(''):'<div class="es"><div class="ei">🔍</div><h3>Nenhum resultado</h3></div>';
+},
+
+// Transaction Modal
+showTxModal(tipo,editId){
+const existing=editId?[...this.data.receitas,...this.data.despesas].find(t=>t.id===editId):null;
+if(!tipo)tipo=existing?.tipo||'receita';
+const isE=!!existing;
+const cats=this.data.categorias||[];
+this.oM(`${isE?'Editar':'Nova'} ${tipo==='receita'?'Receita':'Despesa'}`,`
+<form id="txf" class="fc gm">
+<div class="fg"><label class="form-label">Nome *</label><input class="form-input" id="txn" required value="${existing?.nome||''}"></div>
+<div class="fg"><label class="form-label">Categoria</label><select class="form-input" id="txc">${cats.filter(c=>c.tipo===tipo).map(c=>`<option value="${c.id}" ${existing?.categoria===c.id?'selected':''}>${c.nome}</option>`).join('')}</select></div>
+<div class="fg"><label class="form-label">Valor (R$) *</label><input class="form-input" id="txv" type="number" step="0.01" min="0.01" required value="${existing?.valor||''}"></div>
+<div class="fg"><label class="form-label">Data</label><input class="form-input" id="txd" type="date" value="${existing?U.dI(existing.data):U.dI()}"></div>
+<div class="fg"><label class="form-label">Descrição</label><input class="form-input" id="txds" value="${existing?.descricao||''}"></div>
+<button type="submit" class="btn btn-primary bb">${isE?'Salvar':'Adicionar'}</button>
+</form>`);
+U.on(U.qs('#txf'),'submit',e=>{
+e.preventDefault();
+const v={nome:U.qs('#txn').value.trim(),categoria:U.qs('#txc').value,valor:parseFloat(U.qs('#txv').value),data:U.qs('#txd').value,descricao:U.qs('#txds').value};
+if(!v.nome||!v.valor||v.valor<=0){Toast.e('Preencha corretamente');return}
+const cat=(this.data.categorias||[]).find(c=>c.id===v.categoria);
+if(isE){
+const lists=[this.data.receitas,this.data.despesas,this.data.historico];
+for(const l of lists){const i=l.findIndex(t=>t.id===editId);if(i>=0){
+const old=l[i];const diff=v.valor-old.valor;
+if(old.tipo==='receita')this.data.saldo+=diff;else this.data.saldo-=diff;
+Object.assign(l[i],v,{valor:v.valor,categoriaObj:cat});
+}}
+Toast.s('Atualizada!');
+}else{
+const tx={id:U.id(),tipo,nome:v.nome,categoria:v.categoria,categoriaObj:cat,valor:v.valor,data:new Date(v.data).toISOString(),descricao:v.descricao,dataCriacao:new Date().toISOString()};
+if(tipo==='receita'){this.data.saldo+=tx.valor;this.data.receitas.push(tx)}
+else{this.data.saldo-=tx.valor;this.data.despesas.push(tx)}
+this.data.historico.push(tx);
+this.addXP(5);
+Toast.s(`${tipo==='receita'?'Receita':'Despesa'} adicionada!`);
+}
+this.saveData();this.checkAchievements();this.cMo();this.nav(this.cp);
+});
+},
+
+confirmDelTx(id){
+this.oM('Confirmar Exclusão',`<p class="ts2">Tem certeza que deseja excluir esta transação?</p>
+<div class="mf2"><button class="btn btn-ghost" onclick="App.cMo()">Cancelar</button><button class="btn btn-danger" id="cDel">Excluir</button></div>`);
+U.on(U.qs('#cDel'),'click',()=>{
+const find=arr=>{const i=arr.findIndex(t=>t.id===id);return i>=0?arr.splice(i,1)[0]:null};
+let r=find(this.data.receitas);if(r){this.data.saldo-=r.valor}
+else{r=find(this.data.despesas);if(r)this.data.saldo+=r.valor}
+this.data.historico=this.data.historico.filter(t=>t.id!==id);
+this.saveData();Toast.s('Excluída');this.cMo();this.nav(this.cp);
+});
+},
+
+// Goals
+mtStats(){const m=this.data.metas||[];return{total:m.length,con:m.filter(x=>x.status==='concluida').length,ati:m.filter(x=>x.status==='ativa').length}},
+
+rMt(){
+const mt=this.data.metas||[];
+U.qs('#pg-metas').innerHTML=`<div class="ph"><div><h2 class="pt">Metas</h2><p class="psub">Seus objetivos financeiros</p></div>
+<button class="btn btn-primary btn-sm" onclick="App.showMetaModal()"><i class="fas fa-plus"></i> Nova Meta</button></div>
+<div class="ga">${mt.length?mt.map(m=>this.mCard(m)).join(''):'<div class="es" style="grid-column:1/-1"><div class="ei">🎯</div><h3>Nenhuma meta</h3><p>Crie metas para organizar seus objetivos</p><button class="btn btn-primary" onclick="App.showMetaModal()">Criar primeira meta</button></div>'}</div>`;
+},
+
+mCard(m){
+const p=U.pct(m.valorGuardado||0,m.valorObjetivo);const dn=m.status==='concluida';
+return`<div class="card" style="border-left:4px solid ${m.cor||'#3b82f6'}">
+<div class="flx jb aic" style="margin-bottom:.75rem"><h3 class="f7">${m.icone||'🎯'} ${U.trunc(m.nome,25)}</h3>${dn?'<span class="badge bds">Concluída ✅</span>':`<span class="badge bdp">${p.toFixed(0)}%</span>`}</div>
+<p class="txm ts2" style="margin-bottom:.75rem">${U.trunc(m.descricao||'Sem descrição',60)}</p>
+<div class="prog" style="margin-bottom:.5rem"><div class="prog-fill" style="width:${p}%;${dn?'background:linear-gradient(90deg,#10b981,#059669)':''}"></div></div>
+<div class="flx jb txs tm" style="margin-bottom:.75rem"><span>${U.money(m.valorGuardado||0)}</span><span>${U.money(m.valorObjetivo)}</span></div>
+<div class="flx gs">${!dn?`<button class="btn btn-primary btn-sm" onclick="App.depMeta('${m.id}')"><i class="fas fa-piggy-bank"></i> Guardar</button>`:''}
+<button class="btn btn-ghost btn-sm" onclick="App.showMetaModal('${m.id}')"><i class="fas fa-pen"></i></button>
+<button class="btn btn-ghost btn-sm" onclick="App.delMeta('${m.id}')"><i class="fas fa-trash"></i></button></div></div>`;
+},
+
+showMetaModal(eid){
+const ex=eid?this.data.metas.find(m=>m.id===eid):null;const isE=!!ex;
+this.oM(`${isE?'Editar':'Nova'} Meta`,`
+<form id="mf2" class="fc gm">
+<div class="fg"><label class="form-label">Nome *</label><input class="form-input" id="mn" required value="${ex?.nome||''}"></div>
+<div class="fg"><label class="form-label">Descrição</label><input class="form-input" id="md" value="${ex?.descricao||''}"></div>
+<div class="fg"><label class="form-label">Valor Objetivo (R$) *</label><input class="form-input" id="mv" type="number" step="0.01" min="0.01" required value="${ex?.valorObjetivo||''}"></div>
+<div class="fg"><label class="form-label">Data Limite</label><input class="form-input" id="mdate" type="date" value="${ex?.dataLimite?U.dI(ex.dataLimite):''}"></div>
+<div class="g2"><div class="fg"><label class="form-label">Cor</label><input type="color" id="mcor" value="${ex?.cor||'#3b82f6'}" style="width:100%;height:40px;border:none;border-radius:var(--rm);cursor:pointer"></div>
+<div class="fg"><label class="form-label">Prioridade</label><select class="form-input" id="mpri"><option value="baixa" ${ex?.prioridade==='baixa'?'selected':''}>Baixa</option><option value="media" ${!ex||ex?.prioridade==='media'?'selected':''}>Média</option><option value="alta" ${ex?.prioridade==='alta'?'selected':''}>Alta</option></select></div></div>
+<button type="submit" class="btn btn-primary bb">${isE?'Salvar':'Criar Meta'}</button>
+</form>`);
+U.on(U.qs('#mf2'),'submit',e=>{
+e.preventDefault();
+const v={nome:U.qs('#mn').value.trim(),descricao:U.qs('#md').value,valorObjetivo:parseFloat(U.qs('#mv').value),dataLimite:U.qs('#mdate').value||null,cor:U.qs('#mcor').value,prioridade:U.qs('#mpri').value};
+if(!v.nome||!v.valorObjetivo||v.valorObjetivo<=0){Toast.e('Preencha corretamente');return}
+if(isE){
+const m=this.data.metas.find(x=>x.id===eid);if(m)Object.assign(m,v);
+Toast.s('Meta atualizada!');
+}else{
+const meta={id:U.id(),...v,valorGuardado:0,status:'ativa',dataCriacao:new Date().toISOString()};
+this.data.metas.push(meta);this.addXP(5);Toast.s('Meta criada!');
+}
+this.saveData();this.checkAchievements();this.cMo();this.nav('metas');
+});
+},
+
+depMeta(id){
+const m=this.data.metas.find(x=>x.id===id);if(!m)return;
+this.oM('Guardar Dinheiro',`<p class="ts2" style="margin-bottom:1rem">Saldo: <strong class="tg">${U.money(this.data.saldo)}</strong></p>
+<div class="fg"><label class="form-label">Valor (R$)</label><input class="form-input" id="dv" type="number" step="0.01" min="0.01"></div>
+<button class="btn btn-primary bb" id="dBtn" style="margin-top:1rem"><i class="fas fa-piggy-bank"></i> Guardar</button>`);
+U.on(U.qs('#dBtn'),'click',()=>{
+const val=parseFloat(U.qs('#dv').value);
+if(!val||val<=0){Toast.e('Valor inválido');return}
+if(val>this.data.saldo){Toast.e('Saldo insuficiente!');return}
+this.data.saldo-=val;m.valorGuardado=(m.valorGuardado||0)+val;
+if(m.valorGuardado>=m.valorObjetivo){m.valorGuardado=m.valorObjetivo;m.status='concluida';m.dataConclusao=new Date().toISOString();Toast.s(`🎉 Meta "${m.nome}" concluída!`);this.addXP(30)}
+else Toast.s(`${U.money(val)} guardado em "${m.nome}"`);
+this.addXP(3);this.saveData();this.checkAchievements();this.cMo();this.nav(this.cp);
+});
+},
+
+delMeta(id){
+this.oM('Confirmar',`<p class="ts2">Excluir esta meta?</p><div class="mf2"><button class="btn btn-ghost" onclick="App.cMo()">Cancelar</button><button class="btn btn-danger" id="dmB">Excluir</button></div>`);
+U.on(U.qs('#dmB'),'click',()=>{this.data.metas=this.data.metas.filter(m=>m.id!==id);this.saveData();Toast.s('Meta excluída');this.cMo();this.nav('metas')});
+},
+
+// Achievements
+ACH_DEF:[
+{id:'primeira_receita',nome:'Primeira Receita',desc:'Registre sua primeira receita',xp:10,icone:'💰',cat:'iniciante'},
+{id:'primeira_despesa',nome:'Primeira Despesa',desc:'Registre sua primeira despesa',xp:10,icone:'💳',cat:'iniciante'},
+{id:'primeira_meta',nome:'Sonhador',desc:'Crie sua primeira meta',xp:15,icone:'🎯',cat:'iniciante'},
+{id:'dez_transacoes',nome:'Organizando',desc:'Registre 10 transações',xp:20,icone:'📊',cat:'iniciante'},
+{id:'cem_transacoes',nome:'Contador',desc:'Registre 100 transações',xp:50,icone:'🧮',cat:'avancado'},
+{id:'milionario',nome:'Milionário',desc:'Tenha R$ 1.000 de saldo',xp:25,icone:'💎',cat:'intermediario'},
+{id:'economista',nome:'Economista',desc:'Tenha R$ 5.000 de saldo',xp:50,icone:'🪙',cat:'avancado'},
+{id:'meta_concluida',nome:'Objetivo Alcançado',desc:'Conclua sua primeira meta',xp:30,icone:'🏁',cat:'intermediario'},
+{id:'cinco_metas',nome:'Planejador',desc:'Crie 5 metas',xp:35,icone:'🗓️',cat:'intermediario'},
+{id:'sete_dias',nome:'Semana Firme',desc:'Use o app por 7 dias',xp:25,icone:'📅',cat:'intermediario'},
+{id:'trinta_dias',nome:'Mês Completo',desc:'Use o app por 30 dias',xp:50,icone:'🗓️',cat:'avancado'},
+{id:'nivel_5',nome:'Evoluindo',desc:'Alcance o nível 5',xp:30,icone:'⭐',cat:'intermediario'},
+{id:'nivel_10',nome:'Mestre Financeiro',desc:'Alcance o nível 10',xp:100,icone:'👑',cat:'avancado'},
+{id:'investidor',nome:'Investidor',desc:'Adicione receita de investimentos',xp:20,icone:'📈',cat:'intermediario'}],
+
+checkAchievements(){
+const d=this.data;const unlock=def=>{if(d.conquistas.some(c=>c.id===def.id))return;d.conquistas.push({...def,data:new Date().toISOString(),desbloqueada:true});d.xp=(d.xp||0)+def.xp;Toast.s(`🏆 ${def.nome}!`);this.saveData()};
+const h=d.historico||[],r=d.receitas||[],ds=d.despesas||[],m=d.metas||[],dia=d.config?.diasUsando||1;
+if(r.length>=1)unlock(this.ACH_DEF[0]);if(ds.length>=1)unlock(this.ACH_DEF[1]);if(m.length>=1)unlock(this.ACH_DEF[2]);
+if(h.length>=10)unlock(this.ACH_DEF[3]);if(h.length>=100)unlock(this.ACH_DEF[4]);
+if(d.saldo>=1000)unlock(this.ACH_DEF[5]);if(d.saldo>=5000)unlock(this.ACH_DEF[6]);
+if(m.some(x=>x.valorGuardado>=x.valorObjetivo))unlock(this.ACH_DEF[7]);if(m.length>=5)unlock(this.ACH_DEF[8]);
+if(dia>=7)unlock(this.ACH_DEF[9]);if(dia>=30)unlock(this.ACH_DEF[10]);
+if((d.nivel||1)>=5)unlock(this.ACH_DEF[11]);if((d.nivel||1)>=10)unlock(this.ACH_DEF[12]);
+if(r.some(x=>x.categoria==='investimentos'))unlock(this.ACH_DEF[13]);
+},
+
+addXP(amount){
+this.data.xp=(this.data.xp||0)+amount;
+const need=(this.data.nivel||1)*100;
+if(this.data.xp>=need){this.data.xp-=need;this.data.nivel=(this.data.nivel||1)+1;Toast.s(`🎉 Nível ${this.data.nivel}!`);this.saveData();
+const el=U.qs('.xpbc');if(el){el.classList.add('aL');setTimeout(()=>el.classList.remove('aL'),900)}}
+this.saveData();
+},
+
+rCQ(){
+const all=this.ACH_DEF;const ul=this.data.conquistas||[];
+U.qs('#pg-conquistas').innerHTML=`
+<div class="ph"><div><h2 class="pt">Conquistas</h2><p class="psub">${ul.length} de ${all.length} desbloqueadas</p></div></div>
+<div class="card tc2" style="margin-bottom:1.5rem"><div style="font-size:3rem;margin-bottom:.5rem">🏆</div><h3 class="f7">Sua Coleção</h3><p class="tm2">Nível ${this.data.nivel||1} • ${this.data.xp||0} XP</div>
+<div style="max-width:300px;margin:1rem auto 0">${this.xpBar()}</div></div>
+<div class="ga">${all.map(a=>{const u=ul.some(x=>x.id===a.id);return`<div class="card tc2" style="opacity:${u?1:.4}"><div style="font-size:2.2rem;margin-bottom:.5rem">${u?a.icone:'🔒'}</div><p class="f6 txm">${a.nome}</p><p class="txs tm">${a.xp} XP</p></div>`}).join('')}</div>
+<div class="card tc2" style="margin-top:1.5rem"><h3 class="f7" style="margin-bottom:1rem">🔐 Código Secreto</h3>
+<div class="flx gs jc aic"><input class="form-input" id="secI" placeholder="Digite o código" style="max-width:200px">
+<button class="btn btn-primary btn-sm" onclick="App.trySecret()">Desbloquear</button></div></div>`;
+},
+
+trySecret(){
+const code=U.qs('#secI').value;
+if(code!=='6767'){Toast.e('Código incorreto!');return}
+if(this.data.conquistas.some(c=>c.id==='mestre_dinheiro')){Toast.w('Já desbloqueada!');return}
+this.data.conquistas.push({id:'mestre_dinheiro',nome:'Mestre do Dinheiro',desc:'+99999 de Aura',xp:500,icone:'🏆',cat:'secreto',data:new Date().toISOString(),desbloqueada:true});
+this.data.xp+=500;this.saveData();this.checkLevelUp();Toast.s('🏆 CONQUISTA SECRETA: Mestre do Dinheiro!');
+const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.8);animation:fi .3s';
+o.innerHTML='<div style="text-align:center;animation:si .5s ease both"><div style="font-size:6rem;margin-bottom:1rem">🏆</div><h2 style="font-size:2rem;color:#fbbf24;margin-bottom:.5rem">Mestre do Dinheiro!</h2><p style="font-size:1.3rem;color:#a78bfa">+99999 de Aura</p><p style="color:#94a3b8;margin-top:1rem">+500 XP</p></div>';
+document.body.appendChild(o);setTimeout(()=>o.remove(),5000);
+},
+
+checkLevelUp(){
+const need=this.data.nivel*100;
+if(this.data.xp>=need){this.data.xp-=need;this.data.nivel++;Toast.s(`🎉 Nível ${this.data.nivel}!`);this.saveData()}
+},
+
+// Profile
+rPerfil(){
+const d=this.data;const u=this.user;const t=this.totals();const ms=this.mtStats();const dia=d.config?.diasUsando||1;
+U.qs('#pg-perfil').innerHTML=`
+<div class="ph"><div><h2 class="pt">Perfil</h2><p class="psub">Suas informações</p></div><button class="btn btn-outline btn-sm" onclick="App.editProf()"><i class="fas fa-pen"></i> Editar</button></div>
+<div class="pf-cover">
+<div class="flx gl aic" style="flex-wrap:wrap">
+<div class="pf-avatar-wrap">
+${Auth.getAvatarHtml(u,'av-xl')}
+<div class="pf-avatar-edit" onclick="document.getElementById('prof-avatar-input').click()"><i class="fas fa-camera"></i></div>
+<input type="file" id="prof-avatar-input" accept="image/jpeg,image/jpg,image/png,image/webp" style="display:none" onchange="App.changeProfilePhoto(this)">
+</div>
+<div style="flex:1;min-width:200px">
+<h2 class="txx f8">${u.nome}</h2><p class="ts2">${u.email}</p>
+<p class="txs tm2" style="margin-top:.3rem"><i class="fas fa-calendar-alt"></i> Membro desde ${U.date(u.dataCadastro)}</p>
+<div style="margin-top:.75rem">${this.xpBar()}</div>
+</div></div></div>
+<div class="sg aSu" style="margin-top:1.5rem">
+<div class="sc"><div class="si" style="background:rgba(16,185,129,.12);color:#10b981"><i class="fas fa-wallet"></i></div><div><div class="sv">${U.money(d.saldo)}</div><div class="sl">Saldo</div></div></div>
+<div class="sc"><div class="si" style="background:rgba(16,185,129,.12);color:#10b981"><i class="fas fa-arrow-up"></i></div><div><div class="sv">${U.money(t.rec)}</div><div class="sl">Receitas</div></div></div>
+<div class="sc"><div class="si" style="background:rgba(239,68,68,.12);color:#ef4444"><i class="fas fa-arrow-down"></i></div><div><div class="sv">${U.money(t.des)}</div><div class="sl">Despesas</div></div></div>
+<div class="sc"><div class="si" style="background:rgba(59,130,246,.12);color:#3b82f6"><i class="fas fa-exchange-alt"></i></div><div><div class="sv">${U.money(t.rec+t.des)}</div><div class="sl">Total Mov.</div></div></div>
+<div class="sc"><div class="si" style="background:rgba(124,58,237,.12);color:#7c3aed"><i class="fas fa-bullseye"></i></div><div><div class="sv">${ms.con}/${ms.total}</div><div class="sl">Metas</div></div></div>
+<div class="sc"><div class="si" style="background:rgba(245,158,11,.12);color:#f59e0b"><i class="fas fa-trophy"></i></div><div><div class="sv">${(d.conquistas||[]).length}</div><div class="sl">Conquistas</div></div></div>
+<div class="sc"><div class="si" style="background:rgba(236,72,153,.12);color:#ec4899"><i class="fas fa-calendar-check"></i></div><div><div class="sv">${dia}</div><div class="sl">Dias Usando</div></div></div>
+<div class="sc"><div class="si" style="background:rgba(251,191,36,.12);color:#fbbf24"><i class="fas fa-star"></i></div><div><div class="sv">Nv. ${d.nivel||1}</div><div class="sl">Nível</div></div></div>
+</div>`;
+},
+
+changeProfilePhoto(input){
+const file=input.files[0];if(!file)return;
+if(!['image/jpeg','image/jpg','image/png','image/webp'].includes(file.type)){Toast.e('Formato inválido. Use JPG, PNG ou WEBP.');return}
+if(file.size>5*1024*1024){Toast.e('Máximo: 5MB');return}
+const reader=new FileReader();
+reader.onload=(ev)=>{
+const img=new Image();
+img.onload=()=>{
+const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;
+const ctx=canvas.getContext('2d');const minD=Math.min(img.width,img.height);
+ctx.drawImage(img,(img.width-minD)/2,(img.height-minD)/2,minD,minD,0,0,256,256);
+const dataUrl=canvas.toDataURL('image/jpeg',0.7);
+this.user.foto=dataUrl;this.data.user.foto=dataUrl;
+Auth.updateUser({foto:dataUrl});this.saveData();this.updProf();
+Toast.s('Foto atualizada!');this.nav('perfil');
+};img.src=ev.target.result;
+};reader.readAsDataURL(file);
+},
+
+editProf(){
+this.oM('Editar Perfil',`
+<form id="pf" class="fc gm">
+<div class="fg"><label class="form-label">Nome</label><input class="form-input" id="pn" value="${this.user.nome}"></div>
+<div class="fg"><label class="form-label">Email</label><input class="form-input" id="pe" type="email" value="${this.user.email}"></div>
+<button type="submit" class="btn btn-primary bb">Salvar</button>
+</form>`);
+U.on(U.qs('#pf'),'submit',e=>{
+e.preventDefault();
+const nome=U.qs('#pn').value.trim();const email=U.qs('#pe').value.trim().toLowerCase();
+if(!nome){Toast.e('Nome obrigatório');return}
+if(!email||!Auth.validEmail(email)){Toast.e('Email inválido');return}
+// If email changed, handle migration
+if(email!==this.user.email){
+const users=Auth.getUsers();
+if(users[email]&&users[email].senha===this.user.senha){Toast.e('Email já em uso');return}
+// Migrate data
+const oldKey=Auth.uk(this.user.email);
+const data=localStorage.getItem(oldKey);
+delete users[this.user.email];
+this.user.email=email;this.user.nome=nome;
+users[email]=this.user;
+Auth.saveUsers(users);
+if(data)localStorage.setItem(Auth.uk(email),data);
+localStorage.removeItem(oldKey);
+Auth.saveSession({email,remember:true});
+}
+Auth.updateUser({nome,email});
+this.user.nome=nome;this.user.email=email;this.data.user.nome=nome;this.data.user.email=email;
+this.saveData();Toast.s('Perfil atualizado!');this.cMo();this.updProf();
+if(this.cp==='perfil')this.rPerfil();
+});
+},
+
+// Settings
+rConfig(){
+const isD=!document.body.classList.contains('light');
+U.qs('#pg-configuracoes').innerHTML=`
+<div class="ph"><div><h2 class="pt">Configurações</h2><p class="psub">Personalize sua experiência</p></div></div>
+<div class="card" style="margin-bottom:1rem"><h3 class="f7" style="margin-bottom:1rem"><i class="fas fa-palette"></i> Aparência</h3>
+<div class="flx aic jb" style="padding:.75rem 0;border-bottom:1px solid var(--bc)">
+<div><p class="f6">Modo Escuro</p><p class="txs tm2">Interface escura e elegante</p></div>
+<label style="position:relative;display:inline-block;width:48px;height:26px;cursor:pointer">
+<input type="checkbox" id="theme-tog" ${isD?'checked':''} onchange="App.toggleTheme()" style="opacity:0;width:0;height:0">
+<span style="position:absolute;inset:0;background:var(--bgi);border-radius:26px;transition:.3s"></span>
+<span style="position:absolute;top:3px;left:${isD?'25px':'3px'};width:20px;height:20px;background:var(--cp);border-radius:50%;transition:.3s"></span>
+</label></div></div>
+<div class="card" style="margin-bottom:1rem"><h3 class="f7" style="margin-bottom:1rem"><i class="fas fa-database"></i> Dados</h3>
+<div class="flx gm" style="flex-wrap:wrap">
+<button class="btn btn-outline btn-sm" onclick="App.expData()"><i class="fas fa-download"></i> Exportar JSON</button>
+<button class="btn btn-outline btn-sm" onclick="document.getElementById('imp-f').click()"><i class="fas fa-upload"></i> Importar JSON</button>
+<input type="file" id="imp-f" accept=".json" style="display:none" onchange="App.impData(event)"></div></div>
+<div class="card" style="margin-bottom:1rem"><h3 class="f7" style="margin-bottom:1rem"><i class="fas fa-user-edit"></i> Conta</h3>
+<div class="flx gm" style="flex-wrap:wrap">
+<button class="btn btn-outline btn-sm" onclick="App.editProf()"><i class="fas fa-user"></i> Editar Perfil</button>
+<button class="btn btn-ghost btn-sm" onclick="Auth.logout()"><i class="fas fa-sign-out-alt"></i> Sair</button></div></div>
+<div class="card"><h3 class="f7 td" style="margin-bottom:1rem"><i class="fas fa-exclamation-triangle"></i> Zona Perigosa</h3>
+<button class="btn btn-danger btn-sm" onclick="App.cReset()"><i class="fas fa-trash-alt"></i> Resetar Tudo</button></div>`;
+},
+
+expData(){
+const obj={user:this.user,data:this.data,exp:new Date().toISOString()};
+const j=JSON.stringify(obj,null,2);const b=new Blob([j],{type:'application/json'});
+const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='ephyra-backup.json';a.click();URL.revokeObjectURL(a.href);Toast.s('Dados exportados!');
+},
+
+impData(e){
+const f=e.target.files[0];if(!f)return;
+const r=new FileReader();
+r.onload=ev=>{
+try{
+const obj=JSON.parse(ev.target.result);
+if(obj.data){
+this.data=obj.data;
+if(obj.user){this.user=obj.user;Auth.updateUser(obj.user)}
+this.saveData();this.updProf();this.nav(this.cp);Toast.s('Dados importados!');
+}else Toast.e('Formato inválido');
+}catch(err){Toast.e('Erro na importação')}
+};r.readAsText(f);
+},
+
+cReset(){
+this.oM('⚠️ Resetar Tudo',`<p class="ts2">Todos os dados serão perdidos permanentemente. Continuar?</p>
+<div class="mf2"><button class="btn btn-ghost" onclick="App.cMo()">Cancelar</button><button class="btn btn-danger" id="rB">Resetar</button></div>`);
+U.on(U.qs('#rB'),'click',()=>{
+const key=Auth.uk(this.user.email);localStorage.removeItem(key);
+Auth.clearSession();Auth.logout();
+});
+},
+
+// Charts
+updCharts(){
+const d=this.data;const t=this.totals();
+// Pie: Receitas vs Despesas
+if(this.charts.pie)this.charts.pie.destroy();
+const pieCtx=document.getElementById('c-pie');
+if(pieCtx)this.charts.pie=new Chart(pieCtx,{type:'doughnut',data:{labels:['Receitas','Despesas'],datasets:[{data:[t.rec,t.des],backgroundColor:['#10b981','#ef4444'],borderWidth:0,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{position:'bottom',labels:{color:'var(--tm)',padding:12,usePointStyle:true,font:{size:11}}}}}});
+
+// Categories pie
+const cm={};(d.despesas||[]).forEach(tx=>{const cat=(d.categorias||[]).find(c=>c.id===tx.categoria)||{nome:'Outros',cor:'#64748b'};cm[cat.nome]=(cm[cat.nome]||0)+tx.valor});
+if(this.charts.cat)this.charts.cat.destroy();
+const catCtx=document.getElementById('c-cat');
+if(catCtx)this.charts.cat=new Chart(catCtx,{type:'doughnut',data:{labels:Object.keys(cm),datasets:[{data:Object.values(cm),backgroundColor:Object.keys(cm).map(n=>{const c=d.categorias.find(x=>x.nome===n);return c?c.cor:'#64748b'}),borderWidth:0,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{position:'bottom',labels:{color:'var(--tm)',padding:12,usePointStyle:true,font:{size:11}}}}}});
+
+// Monthly line
+const mo={};[...(d.receitas||[]),...(d.despesas||[])].forEach(tx=>{const dt=new Date(tx.data);const k=dt.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'});if(!mo[k])mo[k]={r:0,d:0};if(tx.tipo==='receita')mo[k].r+=tx.valor;else mo[k].d+=tx.valor});
+const ml=Object.keys(mo).slice(-6);
+if(this.charts.mon)this.charts.mon.destroy();
+const monCtx=document.getElementById('c-mon');
+if(monCtx)this.charts.mon=new Chart(monCtx,{type:'line',data:{labels:ml,datasets:[{label:'Receitas',data:ml.map(k=>mo[k]?.r||0),borderColor:'#10b981',backgroundColor:'rgba(16,185,129,.1)',fill:true,tension:.4},{label:'Despesas',data:ml.map(k=>mo[k]?.d||0),borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,.1)',fill:true,tension:.4}]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{labels:{color:'var(--tm)',usePointStyle:true,font:{size:11}}}},scales:{x:{grid:{color:'rgba(148,163,184,.12)'},ticks:{color:'var(--tm)',font:{size:10}}},y:{grid:{color:'rgba(148,163,184,.12)'},ticks:{color:'var(--tm)',font:{size:10}}}}}});
+},
+
+// Modal
+oM(title,body){U.qs('#m-title').textContent=title;U.qs('#m-body').innerHTML=body;U.qs('#modal').classList.add('a')},
+cMo(){U.qs('#modal').classList.remove('a')}
+};
+
+// Boot
+document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>App.init(),200));
+</script>
+</body>
+</html>
